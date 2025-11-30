@@ -1,12 +1,13 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+
+import ActionButton from "./ActionButton";
 
 export default function NavBar() {
   const [openMenu, setOpenMenu] = useState(false);
-
-  const menuItems = [
+  const navBarItems = [
     { label: "Home", path: "/" },
-    { label: "Dashboard", path: "/dashboard" },
+    // { label: "Dashboard", path: "/dashboard", element: <Dashboard/> },
     { label: "Dictionary", path: "/dictionary" },
     { label: "Quiz", path: "/quiz" },
     { label: "Forum", path: "/forum" },
@@ -14,7 +15,7 @@ export default function NavBar() {
     { label: "Learning Diary", path: "/diary" },
     { label: "ChatBot", path: "/chatbot" },
   ];
-
+  const navigate = useNavigate();
   return (
     <nav className="w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-3 flex items-center justify-between">
       {/* Logo needed too!!*/}
@@ -23,7 +24,7 @@ export default function NavBar() {
       </h2>
 
       <ul className="hidden md:flex items-center space-x-6">
-        {menuItems.map((item) => (
+        {navBarItems.map((item) => (
           <li key={item.path}>
             <Link
               to={item.path}
@@ -36,12 +37,16 @@ export default function NavBar() {
       </ul>
 
       <div className="hidden md:flex items-center space-x-4">
-        <button className="text-gray-600 dark:text-gray-300 hover:text-blue-600">
-          Profile
-        </button>
-        <button className="text-gray-600 dark:text-gray-300 hover:text-red-600">
-          Logout
-        </button>
+        <ActionButton
+          buttonStyle="text-gray-600 dark:text-gray-300 hover:text-blue-600"
+          onClick={() => navigate("/profile")}
+          text="Profile"
+        />
+        <ActionButton
+          buttonStyle="text-gray-600 dark:text-gray-300 hover:text-red-600"
+          onClick={() => {}}
+          text="Logout"
+        />
       </div>
 
       {/* Mobile Hamburger Button */}
@@ -56,7 +61,7 @@ export default function NavBar() {
       {openMenu && (
         <div className="absolute top-16 left-0 w-full bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 p-4 md:hidden">
           <ul className="flex flex-col space-y-4">
-            {menuItems.map((item) => (
+            {navBarItems.map((item) => (
               <li key={item.path}>
                 <Link
                   to={item.path}

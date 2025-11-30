@@ -1,20 +1,39 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import "./App.css";
 import MainLayout from "./layout/mainLayout";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import Dictionary from "./pages/Dictionary";
+import ChatBot from "./pages/ChatBot";
+import Home from "./pages/Home";
+import Quiz from "./pages/Quiz";
+import Forum from "./pages/Forum";
+import Architecture from "./pages/Architecture";
+import LearningDiary from "./pages/LearningDiary";
+import Profile from "./pages/Profile";
 
+export const routeItems = [
+  { label: "Home", path: "/", element: <Home /> },
+  // { label: "Dashboard", path: "/dashboard", element: <Dashboard/> },
+  { label: "Dictionary", path: "/dictionary", element: <Dictionary /> },
+  { label: "Quiz", path: "/quiz", element: <Quiz /> },
+  { label: "Forum", path: "/forum", element: <Forum /> },
+  { label: "Architecture", path: "/architecture", element: <Architecture /> },
+  { label: "Learning Diary", path: "/diary", element: <LearningDiary /> },
+  { label: "ChatBot", path: "/chatbot", element: <ChatBot /> },
+  { label: "Profile", path: "/profile", element: <Profile /> },
+];
 function App() {
   return (
     <BrowserRouter>
-      <MainLayout />
-
-      {/* Routes */}
       <Routes>
-        <Route path="/" element={<MainLayout />} />
-        {/*<Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />*/}
+        <Route path="/" element={<MainLayout />}>
+          {routeItems.map((item) => (
+            <Route
+              key={item.path}
+              path={item.path === "/" ? "" : item.path.substring(1)}
+              element={item.element}
+            />
+          ))}
+        </Route>
       </Routes>
     </BrowserRouter>
   );
