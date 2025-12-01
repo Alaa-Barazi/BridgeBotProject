@@ -4,6 +4,12 @@ const Quiz = () => {
   return (
     <div>
       Quiz
+      {/* title
+      Questions
+      input answer
+      
+      
+      */}
     </div>
   )
 }

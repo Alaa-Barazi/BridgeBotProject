@@ -3,18 +3,19 @@ import { useState } from "react";
 
 import ActionButton from "./ActionButton";
 
-export default function NavBar() {
+export default function MentorNavBar() {
   const [openMenu, setOpenMenu] = useState(false);
+
   const navBarItems = [
-    { label: "Home", path: "/" },
-    // { label: "Dashboard", path: "/dashboard", element: <Dashboard/> },
-    { label: "Dictionary", path: "/dictionary" },
-    { label: "Quiz", path: "/quiz" },
-    { label: "Forum", path: "/forum" },
-    { label: "Architecture", path: "/architecture" },
-    { label: "Learning Diary", path: "/diary" },
-    { label: "ChatBot", path: "/chatbot" },
+    { label: "Home", path: "/mentor" },
+    { label: "Dashboard", path: "/mentor/dashboard" },
+    { label: "Projects", path: "/mentor/projects" },
+    { label: "Dictionary", path: "/mentor/dictionary" },
+    { label: "Forum", path: "/mentor/forum" },
+    { label: "Bot Insights", path: "/mentor/bot-insights" },
+    { label: "Feedback", path: "/mentor/feedback" },
   ];
+
   const navigate = useNavigate();
   return (
     <nav className="w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-3 flex items-center justify-between">

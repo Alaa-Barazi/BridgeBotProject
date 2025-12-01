@@ -4,6 +4,7 @@ const LearningDiary = () => {
   return (
     <div>
       Diary
+      {/* button for uploading new file  */}
     </div>
   )
 }
