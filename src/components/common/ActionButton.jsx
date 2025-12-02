@@ -10,7 +10,7 @@ const ActionButton = (props) => {
   const buttonStyle = props?.buttonStyle ? props.buttonStyle : regularStyle;
 
   return (
-    <button className={buttonStyle} onClick={props.onClick}>
+    <button className={buttonStyle} onClick={props.onClick} type={props?.type}>
       {props.text}
     </button>
   );
