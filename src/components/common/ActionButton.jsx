@@ -1,16 +1,21 @@
 const ActionButton = (props) => {
   const regularStyle = {
     backgroundColor: props?.backgroundColor,
-    color: "white",
+    color: "black",
     padding: "10px 20px",
     border: "none",
     borderRadius: "5px",
     cursor: "pointer",
   };
-  const buttonStyle = props?.buttonStyle ? props.buttonStyle : regularStyle;
+
+  const buttonStyleProp = props?.buttonStyle ? props.buttonStyle : regularStyle;
 
   return (
-    <button className={buttonStyle} onClick={props.onClick} type={props?.type}>
+    <button
+      className={buttonStyleProp}
+      onClick={props.onClick}
+      type={props?.type}
+    >
       {props.text}
     </button>
   );
