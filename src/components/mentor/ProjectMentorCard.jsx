@@ -2,8 +2,10 @@ import React from "react";
 import ProjectMentorView from "./ProjectMentorView";
 import ProjectMentorActions from "./ProjectMentorActions";
 import StatusIndicator from "./StatusIndicator";
+import { useParams } from "react-router-dom";
 
 const ProjectMentorCard = ({ project, projectId }) => {
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg border p-6 shadow mb-6">
       <ProjectMentorView
@@ -16,7 +18,7 @@ const ProjectMentorCard = ({ project, projectId }) => {
 
       <StatusIndicator status={project.status} />
 
-      <ProjectMentorActions />
+      <ProjectMentorActions projectId={projectId} />
     </div>
   );
 };

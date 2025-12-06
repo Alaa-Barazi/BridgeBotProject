@@ -11,7 +11,6 @@ const ActionButton = (props) => {
 
   // 2. Check if the user passed a Tailwind string (className)
   const isTailwind = typeof props.buttonStyle === "string";
-
   return (
     <button
       // If it's a string, use it as class. If not, use empty string.

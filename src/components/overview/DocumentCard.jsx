@@ -1,6 +1,5 @@
-import React from "react";
 import { LuFileText } from "react-icons/lu";
-
+import ActionButton from "../common/ActionButton"
 const DocumentCard = ({ title, lastUpdated, onOpen }) => {
   return (
     <div
@@ -20,6 +19,7 @@ const DocumentCard = ({ title, lastUpdated, onOpen }) => {
       <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">
         Last updated: {lastUpdated}
       </p>
+      <ActionButton text="Open" onClick={() => onOpen(doc)} className="mt-4" />
     </div>
   );
 };

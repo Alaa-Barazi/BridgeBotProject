@@ -1,4 +1,4 @@
-import React from "react";
+
 
 const ProjectMentorView = ({
   projectName,
@@ -16,6 +16,7 @@ const ProjectMentorView = ({
 
       <div className="mt-2">
         <progress value={progress} max="100" />
+        <span>{progress}%</span>
       </div>
 
       <div className="mt-2">Status: {status}</div>

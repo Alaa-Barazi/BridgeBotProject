@@ -28,7 +28,7 @@ const ProjectMentorActions = ({ projectId }) => {
       <ActionButton text="View Architecture" />
       <ActionButton text="Open Requirements Doc" />
       <ActionButton text="Chatbot Prompts Log" />
-      <ActionButton text="Send Feedback" />
+      {/* <ActionButton text="Send Feedback" /> */}
     {/*It should be    <ActionButton
         text="Open Project Overview"
         onClick={() => navigate(`/mentor/view-projects/${projectId}`)}

@@ -1,22 +1,22 @@
-import React from "react";
-
-/* Project Name
-Team Members
-Quick status indicator
-Last updated date */
-
 const HeaderSection = ({ projectName, description, progress, status }) => {
   return (
-    <div className="mb-4">
-      <h2 className="text-xl font-semibold">{projectName}</h2>
+    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow border border-gray-200 dark:border-gray-700 mb-6">
+      <h2 className="text-2xl font-bold text-center mb-2 text-gray-900 dark:text-white">
+        {projectName}
+      </h2>
 
-      <p>Description: {description}</p>
+      <p className="text-center text-gray-600 dark:text-gray-300 mb-4">
+        {description}
+      </p>
 
-      <div className="mt-2">
-        <progress value={progress} max="100" />
+      <div>
+        <p className="font-medium mb-1 text-gray-800 dark:text-gray-200">Progress</p>
+        <progress value={progress} max="100" className="w-full h-4" />
       </div>
 
-      <div className="mt-2">Status: {status}</div>
+      <p className="mt-3 text-center">
+        <span className="font-semibold">Status:</span> {status}
+      </p>
     </div>
   );
 };
