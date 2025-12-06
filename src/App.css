@@ -1,7 +1,8 @@
 @import "tailwindcss";
-#root{
-  margin:0;
+#root {
+  margin: 0;
   text-align: center;
+ 
 }
 
 /* .logo {

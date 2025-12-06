@@ -1,6 +1,9 @@
+import { useState } from "react";
 import ActionButton from "./ActionButton";
 
-const ReplyBox = () => {
+const ReplyBox = ({ onSave }) => {
+  const [text, setText] = useState("");
+
   return (
     <div
       className="mt-6 bg-gray-50 dark:bg-gray-900 
@@ -13,21 +16,13 @@ const ReplyBox = () => {
                    dark:bg-gray-800 dark:text-white"
         rows="3"
         placeholder="Type your reply..."
+        value={text}
+        onChange={(e) => setText(e.target.value)}
       />
 
       <div className="flex gap-3">
-        {/* <ActionButton
-          buttonStyle="px-3 py-2 rounded-md  text-gray-700 dark:text-gray-200 hover:bg-sky-200 hover:text-white dark:hover:bg-gray-800"
-          onClick={() => {}}
-          text="Save"
-        />
-         <ActionButton
-          text="Login"
-          backgroundColor="CornflowerBlue"
-          onClick={() => {}}
-        /> */}
-        <ActionButton text="Save" onClick={() => {}} />
-        <ActionButton text="Clear" type="clear" onClick={() => {}} />
+        <ActionButton text="Save" onClick={() => onSave(text)} />
+        <ActionButton text="Clear" type="clear" onClick={() => setText("")} />
       </div>
     </div>
   );
