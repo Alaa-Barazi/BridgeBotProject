@@ -16,6 +16,7 @@ import MentorForum from "./pages/mentor/MentorForum";
 import MentorBotInsight from "./pages/mentor/MentorBotInsight";
 import MentorFeedBack from "./pages/mentor/MentorFeedBack";
 import MentorDictionary from "./pages/mentor/MentorDictionary";
+import ProjectOverViewPage from "./pages/mentor/ProjectOverViewPage";
 
 export const routeItems = [
   { label: "Home", path: "/", element: <Home /> },
@@ -32,7 +33,6 @@ export const routeItems = [
 export const MentorRouteItems = [
   { label: "Home", path: "", element: <MentorDashboard /> },
   { label: "Dashboard", path: "dashboard", element: <MentorDashboard /> },
-  { label: "View Projects", path: "projects", element: <ViewProjects /> },
   { label: "Dictionary", path: "dictionary", element: <MentorDictionary /> },
   { label: "Forum", path: "forum", element: <MentorForum /> },
   {
@@ -40,12 +40,19 @@ export const MentorRouteItems = [
     path: "bot-insights",
     element: <MentorBotInsight />,
   },
-  { label: "Feedback", path: "feedback", element: <MentorFeedBack/> },
+  { label: "Feedback", path: "feedback", element: <MentorFeedBack /> },
+  { label: "Projects", path: "view-projects", element: <ViewProjects /> },
+  {
+    label: "Project Overview",
+    path: "project-overview",
+    element: <ProjectOverViewPage />,
+  },
 ];
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Student layout */}
         <Route path="/" element={<MainLayout />}>
           {routeItems.map((item) => (
             <Route
@@ -55,11 +62,13 @@ function App() {
             />
           ))}
         </Route>
+
         {/* Mentor layout */}
         <Route path="/mentor" element={<MentorLayout />}>
           {MentorRouteItems.map((item) => (
             <Route key={item.path} path={item.path} element={item.element} />
           ))}
+          <Route path="view-projects/:projectId" element={<ProjectOverViewPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

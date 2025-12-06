@@ -9,7 +9,7 @@ export default function MentorNavBar() {
   const navBarItems = [
     { label: "Home", path: "/mentor" },
     { label: "Dashboard", path: "/mentor/dashboard" },
-    { label: "Projects", path: "/mentor/projects" },
+    { label: "Projects", path: "/mentor/view-projects" },
     { label: "Dictionary", path: "/mentor/dictionary" },
     { label: "Forum", path: "/mentor/forum" },
     { label: "Bot Insights", path: "/mentor/bot-insights" },
