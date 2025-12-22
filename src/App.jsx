@@ -1,5 +1,5 @@
 import "./App.css";
-import MainLayout from "./layout/mainLayout";
+import MainLayout from "./layout/MainLayout";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Dictionary from "./pages/Dictionary";
 import ChatBot from "./pages/ChatBot";
@@ -17,6 +17,8 @@ import MentorBotInsight from "./pages/mentor/MentorBotInsight";
 import MentorFeedBack from "./pages/mentor/MentorFeedBack";
 import MentorDictionary from "./pages/mentor/MentorDictionary";
 import ProjectOverViewPage from "./pages/mentor/ProjectOverViewPage";
+import ProjectHome from "./pages/team/TeamProjectHome";
+import ProjectPage from "./pages/team/TeamProjectPage";
 
 export const routeItems = [
   { label: "Home", path: "/", element: <Home /> },
@@ -25,6 +27,8 @@ export const routeItems = [
   { label: "Quiz", path: "/quiz", element: <Quiz /> },
   { label: "Forum", path: "/forum", element: <Forum /> },
   { label: "Architecture", path: "/architecture", element: <Architecture /> },
+  { label: "Project", path: "/project/", element: <ProjectHome /> },
+
   { label: "Learning Diary", path: "/diary", element: <LearningDiary /> },
   { label: "ChatBot", path: "/chatbot", element: <ChatBot /> },
   { label: "Profile", path: "/profile", element: <Profile /> },
@@ -68,7 +72,10 @@ function App() {
           {MentorRouteItems.map((item) => (
             <Route key={item.path} path={item.path} element={item.element} />
           ))}
-          <Route path="view-projects/:projectId" element={<ProjectOverViewPage />} />
+          <Route
+            path="view-projects/:projectId"
+            element={<ProjectOverViewPage />}
+          />
         </Route>
       </Routes>
     </BrowserRouter>

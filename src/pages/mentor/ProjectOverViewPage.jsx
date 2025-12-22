@@ -6,7 +6,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import FeedbackModal from "./FeedbackModal";
 import ActionButton from "../../components/common/ActionButton";
 import { useState } from "react";
-import FeedbackList from "../../components/common/feedback/FeedbackList";
+import FeedbackList from "../../components/feedback/FeedbackList";
 const sampleProjects = [
   {
     id: "1",

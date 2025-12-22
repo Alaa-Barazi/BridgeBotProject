@@ -9,13 +9,14 @@ export default function StudentNavBar() {
     { label: "Home", path: "/" },
     // { label: "Dashboard", path: "/dashboard", element: <Dashboard/> },
     { label: "Dictionary", path: "/dictionary" },
+    { label: "Project", path: "/project" },
     { label: "Quiz", path: "/quiz" },
+
     { label: "Forum", path: "/forum" },
     { label: "Architecture", path: "/architecture" },
     { label: "Learning Diary", path: "/diary" },
     { label: "ChatBot", path: "/chatbot" },
   ];
-
 
   const navigate = useNavigate();
   return (
