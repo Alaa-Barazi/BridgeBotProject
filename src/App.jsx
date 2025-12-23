@@ -19,6 +19,8 @@ import MentorDictionary from "./pages/mentor/MentorDictionary";
 import ProjectOverViewPage from "./pages/mentor/ProjectOverViewPage";
 import ProjectHome from "./pages/team/TeamProjectHome";
 import ProjectPage from "./pages/team/TeamProjectPage";
+import Chat from "./components/chatBot/Chat";
+import ChatPanel from "./components/chatBot/ChatPanel";
 
 export const routeItems = [
   { label: "Home", path: "/", element: <Home /> },
@@ -30,7 +32,7 @@ export const routeItems = [
   { label: "Project", path: "/project/", element: <ProjectHome /> },
 
   { label: "Learning Diary", path: "/diary", element: <LearningDiary /> },
-  { label: "ChatBot", path: "/chatbot", element: <ChatBot /> },
+  { label: "ChatBot", path: "/chatbot", element: <ChatPanel /> },
   { label: "Profile", path: "/profile", element: <Profile /> },
 ];
 

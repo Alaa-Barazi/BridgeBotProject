@@ -3,9 +3,12 @@ import ProjectHeader from "../../components/team/project/ProjectHeader";
 import ProjectProgressCard from "../../components/team/project/ProjectProgressCard";
 import ProjectTabs from "../../components/team/project/ProjectTabs";
 import DocumentsPanel from "../../components/team/project/DocumentsPanel";
+import { Outlet } from "react-router-dom";
 
 export default function TeamProjectWorkspace({ project }) {
   const [activeTab, setActiveTab] = useState("documents");
+  <Outlet context={{ pageContext: "project" }} />
+
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
