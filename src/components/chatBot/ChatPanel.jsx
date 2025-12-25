@@ -18,10 +18,10 @@ export default function ChatPanel({
   const { projectId } = useParams();
   //Get project BY it's ID from the mockProject File
   projectContext = mockProjectExample;
-  
+
   const { projectName, category, stage } = projectContext;
 
-  console.log("ChatPanel projectContext:", projectContext);
+  //console.log("ChatPanel projectContext:", projectContext);
 
   const storageKey = "bridgebot_chat_global";
 
@@ -59,7 +59,12 @@ export default function ChatPanel({
     setImagePreview(null);
     fileInputRef.current.value = "";
   };
-
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault(); // Prevents new lines in simple inputs
+      sendMessage();
+    }
+  };
   // === GEMINI CALL ===
   const askGemini = async (userText, hasImage) => {
     const genAI = new GoogleGenerativeAI(API_KEY);
@@ -221,6 +226,7 @@ BEHAVIOR RULES:
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="Ask BridgeBot..."
             className="flex-1 px-3 py-2 text-sm border rounded dark:bg-gray-800 dark:text-white"
           />

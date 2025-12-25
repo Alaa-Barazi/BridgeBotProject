@@ -1,9 +1,10 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 const Profile = () => {
-  // State to handle edit mode
+  const navigate = useNavigate();
   const [isEditMode, setIsEditMode] = useState(false);
 
-  // State to handle form data
   const [teamInfo, setTeamInfo] = useState({
     teamName: "BridgeBot Team",
     email: "team@bridgebot.com",
@@ -12,7 +13,6 @@ const Profile = () => {
 
   const handleToggleEdit = () => {
     if (isEditMode) {
-      // Logic for saving changes would go here
       console.log("Changes saved:", teamInfo);
     }
     setIsEditMode(!isEditMode);
@@ -24,95 +24,114 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-900 via-slate-800 to-black p-6">
-      {/* Component Specific CSS */}
-      <style>
-        {`
-          .glass-card {
-            backdrop-filter: blur(14px);
-            background: rgba(255,255,255,0.18);
-            border-radius: 18px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.25);
-            border: 1px solid rgba(255,255,255,0.25);
-          }
-          .info-box {
-            background: rgba(255, 255, 255, 0.7);
-            color: black;
-            padding: 10px 14px;
-            border-radius: 10px;
-            width: 100%;
-            margin-bottom: 12px;
-            border: 1px solid rgba(255,255,255,0.4);
-            transition: 0.3s;
-          }
-          .info-box.editable {
-            background: white !important;
-            border: 1px solid #3b82f6 !important;
-            box-shadow: 0 0 8px #3b82f67a;
-            outline: none;
-          }
-        `}
-      </style>
-
-      <div className="glass-card w-full max-w-lg p-8 text-white">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-6">
+      <div className="w-full max-w-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-8">
+        {/* Header */}
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-semibold">
-            Welcome, <span className="text-blue-300">{teamInfo.teamName}</span>{" "}
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Welcome,{" "}
+            <span className="text-blue-600 dark:text-blue-400">
+              {teamInfo.teamName}
+            </span>{" "}
             👋
           </h2>
         </div>
 
-        <div className="text-center mb-6">
-          <img
-            src="https://cdn-icons-png.flaticon.com/512/3177/3177440.png"
-            alt="Profile Avatar"
-            className="w-28 h-28 rounded-full mx-auto border-4 border-white shadow-lg"
-          />
+        {/* Avatar */}
+        <div className="text-center mb-8">
+          <div className="relative inline-block">
+            <img
+              src="https://cdn-icons-png.flaticon.com/512/3177/3177440.png"
+              alt="Profile Avatar"
+              className="w-24 h-24 rounded-full mx-auto border-2 border-gray-200 dark:border-gray-700 p-1"
+            />
+            {isEditMode && (
+              <span className="absolute bottom-0 right-0 bg-blue-600 text-white text-xs p-1 rounded-full cursor-pointer">
+                ✎
+              </span>
+            )}
+          </div>
         </div>
 
+        {/* Team Info Section */}
+        <div className="space-y-4 mb-8">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            Team Information
+          </h3>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Team Name
+            </label>
+            <input
+              name="teamName"
+              className={`w-full px-3 py-2 rounded-md border transition ${
+                isEditMode
+                  ? "border-blue-500 ring-2 ring-blue-500/20 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  : "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+              }`}
+              value={teamInfo.teamName}
+              readOnly={!isEditMode}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Email
+            </label>
+            <input
+              name="email"
+              className={`w-full px-3 py-2 rounded-md border transition ${
+                isEditMode
+                  ? "border-blue-500 ring-2 ring-blue-500/20 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  : "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+              }`}
+              value={teamInfo.email}
+              readOnly={!isEditMode}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Joined On
+            </label>
+            <input
+              className="w-full px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-500 cursor-not-allowed"
+              value={teamInfo.joinedOn}
+              readOnly
+            />
+          </div>
+        </div>
+
+        {/* Status Section */}
         <div className="mb-8">
-          <p className="text-lg font-semibold mb-2">Team Information</p>
-
-          <label className="text-gray-300 text-sm">Team Name</label>
-          <input
-            name="teamName"
-            className={`info-box ${isEditMode ? "editable" : ""}`}
-            value={teamInfo.teamName}
-            readOnly={!isEditMode}
-            onChange={handleChange}
-          />
-
-          <label className="text-gray-300 text-sm">Email</label>
-          <input
-            name="email"
-            className={`info-box ${isEditMode ? "editable" : ""}`}
-            value={teamInfo.email}
-            readOnly={!isEditMode}
-            onChange={handleChange}
-          />
-
-          <label className="text-gray-300 text-sm">Joined On</label>
-          <input className="info-box" value={teamInfo.joinedOn} readOnly />
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
+            Learning Status
+          </h3>
+          <div className="px-3 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-md text-blue-700 dark:text-blue-300 text-sm font-medium">
+            Level: Beginner ⭐
+          </div>
         </div>
 
-        <div className="mb-8">
-          <p className="text-lg font-semibold mb-2">Learning Status</p>
-          <div className="info-box">Level: Beginner ⭐</div>
-        </div>
-
-        <div className="space-y-3">
+        {/* Actions */}
+        <div className="flex flex-col gap-3">
           <button
             onClick={handleToggleEdit}
-            className={`w-full p-3 rounded shadow-lg transition font-medium ${
+            className={`w-full py-2 rounded-md font-medium transition shadow-sm ${
               isEditMode
-                ? "bg-green-500 hover:bg-green-600"
-                : "bg-blue-400 hover:bg-blue-500"
+                ? "bg-green-600 hover:bg-green-700 text-white"
+                : "bg-blue-600 hover:bg-blue-700 text-white"
             }`}
           >
             {isEditMode ? "Save Changes" : "Edit Profile"}
           </button>
 
-          <button className="w-full p-3 bg-red-500 hover:bg-red-600 rounded shadow-lg transition font-medium">
+          <button
+            onClick={() => navigate("/login")}
+            className="w-full py-2 bg-white dark:bg-transparent border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md font-medium transition"
+          >
             Logout
           </button>
         </div>
