@@ -6,9 +6,9 @@ import ChatBot from "./pages/ChatBot";
 import Home from "./pages/Home";
 import Quiz from "./pages/Quiz";
 import Forum from "./pages/Forum";
-import Architecture from "./pages/Architecture";
+
 import LearningDiary from "./pages/LearningDiary";
-import Profile from "./pages/Profile";
+import Profile from "./pages/auth/Profile";
 import MentorLayout from "./layout/MentorLayout";
 import MentorDashboard from "./pages/mentor/mentorDashboard";
 import ViewProjects from "./pages/mentor/ViewProjects";
@@ -17,10 +17,23 @@ import MentorBotInsight from "./pages/mentor/MentorBotInsight";
 import MentorFeedBack from "./pages/mentor/MentorFeedBack";
 import MentorDictionary from "./pages/mentor/MentorDictionary";
 import ProjectOverViewPage from "./pages/mentor/ProjectOverViewPage";
-import ProjectHome from "./pages/team/TeamProjectHome";
-import ProjectPage from "./pages/team/TeamProjectPage";
-import Chat from "./components/chatBot/Chat";
+import TeamProjectHome from "./pages/team/TeamProjectHome";
+
 import ChatPanel from "./components/chatBot/ChatPanel";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import Architecture from "./pages/team/TeamProjectArchitecture";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+
+const commonRouteItems = [
+  { label: "Login", path: "/login", element: <Login /> },
+  { label: "Register", path: "/register", element: <Register /> },
+  {
+    label: "Forgot Password",
+    path: "/forgot-password",
+    element: <ForgotPassword />,
+  },
+];
 
 export const routeItems = [
   { label: "Home", path: "/", element: <Home /> },
@@ -29,8 +42,16 @@ export const routeItems = [
   { label: "Quiz", path: "/quiz", element: <Quiz /> },
   { label: "Forum", path: "/forum", element: <Forum /> },
   { label: "Architecture", path: "/architecture", element: <Architecture /> },
-  { label: "Project", path: "/project/", element: <ProjectHome /> },
-
+  // {
+  //   label: "Project",
+  //   path: "/project/:projectId",
+  //   element: <TeamProjectHome />,
+  // },
+  // {
+  //   label: "TeamWorkSpaceProject",
+  //   path: "/project/:projectId",
+  //   element: <TeamProjectHome />,
+  // },
   { label: "Learning Diary", path: "/diary", element: <LearningDiary /> },
   { label: "ChatBot", path: "/chatbot", element: <ChatPanel /> },
   { label: "Profile", path: "/profile", element: <Profile /> },
@@ -58,6 +79,10 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Common routes like Login, Register, Forgot Password */}
+        {commonRouteItems.map((item) => (
+          <Route key={item.path} path={item.path} element={item.element} />
+        ))}
         {/* Student layout */}
         <Route path="/" element={<MainLayout />}>
           {routeItems.map((item) => (
@@ -67,6 +92,7 @@ function App() {
               element={item.element}
             />
           ))}
+          <Route path="project/:projectId" element={<TeamProjectHome />} />
         </Route>
 
         {/* Mentor layout */}

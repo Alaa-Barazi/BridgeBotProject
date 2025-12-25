@@ -3,16 +3,23 @@ import ProjectHeader from "../../components/team/project/ProjectHeader";
 import ProjectProgressCard from "../../components/team/project/ProjectProgressCard";
 import ProjectTabs from "../../components/team/project/ProjectTabs";
 import DocumentsPanel from "../../components/team/project/DocumentsPanel";
-import { Outlet } from "react-router-dom";
+import ChatPanel from "../../components/chatBot/ChatPanel";
+import { useParams } from "react-router-dom";
+import { mockProjectExample } from "../../mock/mockProject";
 
-export default function TeamProjectWorkspace({ project }) {
+export default function TeamProjectWorkspace() {
+  const { projectId } = useParams();
+  //Get project BY it's ID from the mockProject File
+  const project = mockProjectExample;
+  console.log("Project in Workspace:", project);
   const [activeTab, setActiveTab] = useState("documents");
-  <Outlet context={{ pageContext: "project" }} />
-
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
-      <ProjectHeader projectName={project.projectName} description={project.description} />
+    <div className="p-8 max-w-5xl mx-auto relative">
+      <ProjectHeader
+        projectName={project.projectName}
+        description={project.description}
+      />
 
       <ProjectProgressCard
         status={project.status}
@@ -23,7 +30,10 @@ export default function TeamProjectWorkspace({ project }) {
 
       <ProjectTabs active={activeTab} onChange={setActiveTab} />
 
-      {activeTab === "documents" && <DocumentsPanel documents={project.documents} />}
+      {/* MAIN CONTENT */}
+      {activeTab === "documents" && (
+        <DocumentsPanel documents={project.documents} />
+      )}
 
       {activeTab === "requirements" && (
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm">
@@ -57,6 +67,34 @@ export default function TeamProjectWorkspace({ project }) {
           </p>
         </div>
       )}
+
+      {/* 🔹 BRIDGEBOT FLOATING CHAT */}
+      {/* <ChatPanel
+        projectId={project.id}
+        pageContext={activeTab}
+      /> */}
+
+      {/* <ChatPanel
+        pageContext="project"
+        projectContext={{
+          projectName: project.projectName,
+          category: project.category,
+          stage: project.status, // requirements | architecture | notes
+        }}
+      /> */}
+
+      <ChatPanel
+        pageContext="project"
+        projectContext={
+          project
+            ? {
+                projectName: project.projectName,
+                category: project.category,
+                stage: activeTab,
+              }
+            : undefined
+        }
+      />
     </div>
   );
 }

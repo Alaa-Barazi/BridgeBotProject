@@ -4,12 +4,14 @@ import { useState } from "react";
 import ActionButton from "./ActionButton";
 
 export default function StudentNavBar() {
+  //Maybe get the project related to this user later so when going to project page we know which project to load
+  const currentProjectId = "p-101"; // Placeholder project ID
   const [openMenu, setOpenMenu] = useState(false);
   const navBarItems = [
     { label: "Home", path: "/" },
     // { label: "Dashboard", path: "/dashboard", element: <Dashboard/> },
     { label: "Dictionary", path: "/dictionary" },
-    { label: "Project", path: "/project" },
+   { label: "Project", path: `/project/${currentProjectId}` },
     { label: "Quiz", path: "/quiz" },
 
     { label: "Forum", path: "/forum" },

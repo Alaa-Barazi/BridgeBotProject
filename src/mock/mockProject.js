@@ -10,8 +10,18 @@ export const mockProjectExample = {
   teamLeader: "Alaa",
   members: ["Alaa", "Sara", "Omar"],
   documents: [
-    { id: "d1", title: "Requirements v1", type: "PDF", updatedAt: "2025-12-21" },
-    { id: "d2", title: "Architecture Notes", type: "DOC", updatedAt: "2025-12-19" },
+    {
+      id: "d1",
+      title: "Requirements v1",
+      type: "PDF",
+      updatedAt: "2025-12-21",
+    },
+    {
+      id: "d2",
+      title: "Architecture Notes",
+      type: "DOC",
+      updatedAt: "2025-12-19",
+    },
     { id: "d3", title: "Test Plan", type: "PDF", updatedAt: "2025-12-18" },
   ],
 };
