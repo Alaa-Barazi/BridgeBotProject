@@ -12,6 +12,7 @@ export default function MainLayout() {
 
       <main className="flex-1 w-full bg-gray-50 p-6 overflow-y-auto">
         <Outlet />
+
         <ChatPanel pageContext={pageContext} />
       </main>
     </div>
