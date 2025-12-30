@@ -2,6 +2,7 @@ import { useState } from "react";
 import DictionaryCard from "../components/common/DictionaryCard";
 import Modal from "../components/common/Modal";
 import { iotDictionary } from "../mock/iotDictionary";
+import { Search } from "lucide-react";
 
 export default function Dictionary() {
   const userRole = "teacher"; // change to "student" later
@@ -66,13 +67,15 @@ export default function Dictionary() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Dictionary</h1>
+      <h1 className="text-2xl font-bold mb-6">Dictionary</h1>  
 
       {/* Controls */}
       <div className="flex flex-wrap gap-4 mb-6">
+      
         <input
-          type="text"
-          placeholder="Search terms..."
+          type="text"  
+          
+          placeholder="🔍Search terms..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="border rounded px-3 py-2 w-full max-w-md"
