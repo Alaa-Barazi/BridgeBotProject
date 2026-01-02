@@ -50,11 +50,19 @@ export default function QuizManager({ week }) {
         <button
           onClick={onGenerate}
           disabled={generating}
-          className="px-3 py-2 text-sm bg-indigo-600 text-white rounded-md"
+          className="px-3 py-2 text-sm rounded-md bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60 flex items-center gap-2"
         >
-          Generate 10 questions
+          {generating && (
+            <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+          )}
+          {generating ? "Generating quiz..." : "Generate 10 questions"}
         </button>
       </div>
+      {generating && (
+        <p className="text-xs text-gray-500 mt-2 italic">
+          BridgeBot is analyzing the documents and creating questions
+        </p>
+      )}
 
       {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
 

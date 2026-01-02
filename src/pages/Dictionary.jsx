@@ -1,13 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DictionaryCard from "../components/common/DictionaryCard";
 import Modal from "../components/common/Modal";
-import { iotDictionary } from "../mock/iotDictionary";
-import { Search } from "lucide-react";
+import { listWeekDictionary } from "../services/dictionaryService";
 
 export default function Dictionary() {
- const userRole = "teacher"; // change to "student" later
-//const userRole = "student"; 
-  const [terms, setTerms] = useState(iotDictionary);
+  const userRole = "student"; // change to "teacher" for mentor view
+
+  const [week, setWeek] = useState(1);
+  const [terms, setTerms] = useState([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
 
@@ -20,40 +20,14 @@ export default function Dictionary() {
     category: "IoT",
   });
 
-  const openAddModal = () => {
-    setEditingIndex(null);
-    setForm({ term: "", definition: "", category: "IoT" });
-    setIsModalOpen(true);
-  };
+  useEffect(() => {
+    const loadDictionary = async () => {
+      const data = await listWeekDictionary(week);
+      setTerms(data);
+    };
 
-  const openEditModal = (index) => {
-    setEditingIndex(index);
-    setForm(terms[index]);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
-
-  const saveTerm = () => {
-    if (!form.term || !form.definition) return;
-
-    if (editingIndex === null) {
-      setTerms((prev) => [...prev, form]);
-    } else {
-      setTerms((prev) =>
-        prev.map((item, i) => (i === editingIndex ? form : item))
-      );
-    }
-
-    closeModal();
-  };
-
-  const deleteTerm = (index) => {
-    if (!window.confirm("Delete this term?")) return;
-    setTerms((prev) => prev.filter((_, i) => i !== index));
-  };
+    loadDictionary();
+  }, [week]);
 
   const filteredTerms = terms.filter((item) => {
     const matchesSearch =
@@ -66,113 +40,80 @@ export default function Dictionary() {
   });
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Dictionary</h1>  
+    <div className="p-6 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+      <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">
+        Dictionary
+      </h1>
 
       {/* Controls */}
-      <div className="flex flex-wrap gap-4 mb-6">
-      
+      <div className="flex flex-wrap gap-4 mb-6 p-4 rounded-lg bg-white dark:bg-gray-800 shadow-sm">
+        {/* Week selector */}
+        <select
+          value={week}
+          onChange={(e) => setWeek(Number(e.target.value))}
+          className="border rounded px-3 py-2
+                     bg-white dark:bg-gray-700
+                     text-gray-900 dark:text-gray-100
+                     border-gray-300 dark:border-gray-600
+                     focus:ring-2 focus:ring-blue-500"
+        >
+          {Array.from({ length: 14 }, (_, i) => i + 1).map((w) => (
+            <option key={w} value={w}>
+              {w === 1 ? "Week 1 (Syllabus)" : `Week ${w}`}
+            </option>
+          ))}
+        </select>
+
+        {/* Search */}
         <input
-          type="text"  
-          
-          placeholder="🔍Search terms..."
+          type="text"
+          placeholder="Search terms..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border rounded px-3 py-2 w-full max-w-md"
+          className="border rounded px-3 py-2 w-full max-w-md
+                     bg-white dark:bg-gray-700
+                     text-gray-900 dark:text-gray-100
+                     border-gray-300 dark:border-gray-600
+                     placeholder-gray-400
+                     focus:ring-2 focus:ring-blue-500"
         />
 
+        {/* Category filter */}
         <select
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="border rounded px-3 py-2"
+          className="border rounded px-3 py-2
+                     bg-white dark:bg-gray-700
+                     text-gray-900 dark:text-gray-100
+                     border-gray-300 dark:border-gray-600
+                     focus:ring-2 focus:ring-blue-500"
         >
           <option value="All">All categories</option>
           <option value="IoT">IoT</option>
           <option value="Hardware">Hardware</option>
           <option value="Software">Software</option>
         </select>
-
-        {userRole === "teacher" && (
-          <button
-            onClick={openAddModal}
-            className="bg-blue-600 text-white px-4 py-2 rounded"
-          >
-            + Add term
-          </button>
-        )}
       </div>
 
       {/* Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {terms.length === 0 && (
+          <p className="text-gray-600 dark:text-gray-400">
+            No dictionary cards for this week.
+          </p>
+        )}
         {filteredTerms.map((item, index) => (
-          <div key={index} className="relative">
+          <div
+            key={item.id || index}
+            className="relative rounded-lg
+                       bg-white dark:bg-gray-800
+                       border border-gray-200 dark:border-gray-700
+                       shadow-sm hover:shadow-md transition-shadow"
+          >
             <DictionaryCard {...item} />
-
-            {userRole === "teacher" && (
-              <div className="absolute top-2 right-2 flex gap-2">
-                <button
-                  onClick={() => openEditModal(index)}
-                  className="text-xs text-blue-600"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => deleteTerm(index)}
-                  className="text-xs text-red-600"
-                >
-                  Delete
-                </button>
-              </div>
-            )}
           </div>
         ))}
       </div>
-
-      {/* MODAL */}
-      {isModalOpen && (
-        <Modal
-          title={editingIndex === null ? "Add term" : "Edit term"}
-          onClose={closeModal}
-        >
-          <div className="space-y-4">
-            <input
-              placeholder="Term"
-              value={form.term}
-              onChange={(e) => setForm({ ...form, term: e.target.value })}
-              className="w-full border rounded px-3 py-2"
-            />
-
-            <textarea
-              placeholder="Definition"
-              value={form.definition}
-              onChange={(e) => setForm({ ...form, definition: e.target.value })}
-              className="w-full border rounded px-3 py-2"
-            />
-
-            <select
-              value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value })}
-              className="w-full border rounded px-3 py-2"
-            >
-              <option value="IoT">IoT</option>
-              <option value="Hardware">Hardware</option>
-              <option value="Software">Software</option>
-            </select>
-
-            <div className="flex justify-end gap-2">
-              <button onClick={closeModal} className="px-4 py-2 border rounded">
-                Cancel
-              </button>
-              <button
-                onClick={saveTerm}
-                className="px-4 py-2 bg-blue-600 text-white rounded"
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </Modal>
-      )}
     </div>
   );
 }

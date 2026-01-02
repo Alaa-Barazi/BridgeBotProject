@@ -1,19 +1,19 @@
-import { getWeekSourceText } from "./documentService";
+import {
+  collection,
+  doc,
+  setDoc,
+  getDocs,
+  serverTimestamp,
+} from "firebase/firestore";
+import { db } from "../firebase";
 import {
   generateDictionaryWithGemini,
   editTextWithGemini,
 } from "./geminiService";
-
-let dictionaryByWeek = {};
-let entryIdCounter = 1;
-
-function delay(result, ms = 400) {
-  return new Promise((resolve) => setTimeout(() => resolve(result), ms));
-}
+import { getWeekSourceText } from "./documentService";
 
 export async function generateWeekDictionary(week) {
   const sourceText = getWeekSourceText(week);
-
   if (!sourceText.trim()) {
     throw new Error("No documents uploaded for this week");
   }
@@ -23,37 +23,39 @@ export async function generateWeekDictionary(week) {
     sourceText,
   });
 
-  dictionaryByWeek[week] = generated.map((item) => ({
-    id: String(entryIdCounter++),
-    week,
-    term: item.term,
-    definition: item.definition,
-    createdAt: new Date().toISOString(),
-  }));
+  const dictRef = collection(db, "weeks", `week_${week}`, "dictionary");
 
-  return delay({ success: true });
+  for (const item of generated) {
+    const entryRef = doc(dictRef);
+    await setDoc(entryRef, {
+      term: item.term,
+      definition: item.definition,
+      category: item.category || "IoT",
+      createdAt: serverTimestamp(),
+    });
+  }
 }
 
 export async function listWeekDictionary(week) {
-  return delay(dictionaryByWeek[week] || []);
+  const dictRef = collection(db, "weeks", `week_${week}`, "dictionary");
+  const snapshot = await getDocs(dictRef);
+
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
 }
 
-export async function applyDefinitionEdit(entryId, instruction) {
-  for (const week in dictionaryByWeek) {
-    const idx = dictionaryByWeek[week].findIndex((e) => e.id === entryId);
-    if (idx !== -1) {
-      const original = dictionaryByWeek[week][idx].definition;
+export async function applyDefinitionEdit(entryId, instruction, week) {
+  const entryRef = doc(db, "weeks", `week_${week}`, "dictionary", entryId);
 
-      const updated = await editTextWithGemini({
-        originalText: original,
-        instruction,
-        mode: "dictionary",
-      });
+  const updated = await editTextWithGemini({
+    originalText: instruction.originalText,
+    instruction: instruction.text,
+    mode: "dictionary",
+  });
 
-      dictionaryByWeek[week][idx].definition = updated;
-      return dictionaryByWeek[week][idx];
-    }
-  }
+  await setDoc(entryRef, { definition: updated }, { merge: true });
 
-  throw new Error("Definition not found");
+  return updated;
 }

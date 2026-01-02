@@ -23,6 +23,9 @@ const ChatPanel = forwardRef(function ChatPanel(
   },
   ref
 ) {
+  const lastGeminiCallRef = useRef(0);
+  const GEMINI_COOLDOWN_MS = 12000;
+
   projectContext = mockProjectExample;
   const { projectName, stage } = projectContext;
 
@@ -68,14 +71,67 @@ const ChatPanel = forwardRef(function ChatPanel(
   };
 
   const askGemini = async (userText) => {
+    const now = Date.now();
+    if (now - lastGeminiCallRef.current < GEMINI_COOLDOWN_MS) {
+      throw new Error("Please wait a moment before the next question");
+    }
+    lastGeminiCallRef.current = now;
+
     const genAI = new GoogleGenerativeAI(API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    const QUIZ_PROMPT = `Adaptive IoT quiz examiner rules... Student answer: "${userText}"`;
+    const buildQuizPrompt = (payload) => {
+      // Evaluation-only mode
+      if (typeof payload === "object" && payload.question && payload.answer) {
+        return `
+You are a supportive course mentor.
+
+TASK:
+Evaluate the student's answer and help them understand the concept.
+
+QUESTION:
+${payload.question}
+
+STUDENT ANSWER:
+${payload.answer}
+
+INSTRUCTIONS:
+- Clearly state whether the answer is correct or incorrect
+- If incorrect, explain why and provide the correct concept
+- If partially correct, acknowledge what is right and clarify what is missing
+- Keep the explanation concise and educational
+- Do not mention grades or scores
+- Do not ask a follow-up question
+
+RETURN ONLY VALID JSON:
+{
+  "isCorrect": true or false,
+  "explanation": "clear, student-friendly explanation"
+}
+
+`;
+      }
+
+      // Legacy practice quiz mode
+      return `
+Adaptive IoT quiz examiner.
+
+STUDENT MESSAGE:
+"${payload}"
+
+Return JSON with:
+{
+  "question": "...",
+  "isCorrect": null,
+  "explanation": "",
+  "difficulty": "easy"
+}
+`;
+    };
 
     const PROJECT_PROMPT = `Engineering mentor rules... Project: ${projectName}, Stage: ${stage}, User message: "${userText}"`;
 
-    const prompt = quizMode ? QUIZ_PROMPT : PROJECT_PROMPT;
+    const prompt = quizMode ? buildQuizPrompt(userText) : PROJECT_PROMPT;
 
     // 🔥 Fix: Correct structure for Multi-modal (Text + Image)
     let payload = [prompt];
@@ -90,6 +146,7 @@ const ChatPanel = forwardRef(function ChatPanel(
 
   useImperativeHandle(ref, () => ({
     submitQuizAnswer: async (answer) => {
+      if (thinking) return;
       setThinking(true);
       try {
         const reply = await askGemini(answer);
@@ -97,7 +154,20 @@ const ChatPanel = forwardRef(function ChatPanel(
         const parsed = JSON.parse(cleanedJson);
         onQuizEvent?.(parsed);
       } catch (e) {
-        console.error("Quiz logic error:", e);
+        if (e.message?.includes("quota") || e.message?.includes("429")) {
+          setMessages((p) => [
+            ...p,
+            {
+              role: "bot",
+              text: "⏳ BridgeBot is taking a short break to respect API limits. Please wait a few seconds and try again.",
+            },
+          ]);
+        } else {
+          setMessages((p) => [
+            ...p,
+            { role: "bot", text: "An unexpected error occurred." },
+          ]);
+        }
       } finally {
         setThinking(false);
       }

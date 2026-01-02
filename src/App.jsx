@@ -24,6 +24,7 @@ import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Architecture from "./pages/team/TeamProjectArchitecture";
 import ForgotPassword from "./pages/auth/ForgotPassword";
+import CourseQuiz from "./pages/CourseQuiz";
 
 const commonRouteItems = [
   { label: "Login", path: "/login", element: <Login /> },
@@ -39,7 +40,7 @@ export const routeItems = [
   { label: "Home", path: "/", element: <Home /> },
   // { label: "Dashboard", path: "/dashboard", element: <Dashboard/> },
   { label: "Dictionary", path: "/dictionary", element: <Dictionary /> },
-  { label: "Quiz", path: "/quiz", element: <Quiz /> },
+  { label: "Quiz", path: "/quiz", element: <CourseQuiz /> },
   { label: "Forum", path: "/forum", element: <Forum /> },
   { label: "Architecture", path: "/architecture", element: <Architecture /> },
   // {

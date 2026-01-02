@@ -1,16 +1,16 @@
-import { getWeekSourceText } from "./documentService";
+import {
+  collection,
+  doc,
+  setDoc,
+  getDocs,
+  serverTimestamp,
+} from "firebase/firestore";
+import { db } from "../firebase";
 import { generateQuizWithGemini, editTextWithGemini } from "./geminiService";
-
-let quizzesByWeek = {};
-let questionIdCounter = 1;
-
-function delay(result, ms = 400) {
-  return new Promise((resolve) => setTimeout(() => resolve(result), ms));
-}
+import { getWeekSourceText } from "./documentService";
 
 export async function generateWeekQuiz(week) {
   const sourceText = getWeekSourceText(week);
-
   if (!sourceText.trim()) {
     throw new Error("No documents uploaded for this week");
   }
@@ -20,37 +20,38 @@ export async function generateWeekQuiz(week) {
     sourceText,
   });
 
-  quizzesByWeek[week] = generated.map((item) => ({
-    id: String(questionIdCounter++),
-    week,
-    question: item.question,
-    difficulty: "medium",
-    createdAt: new Date().toISOString(),
-  }));
+  const quizRef = collection(db, "weeks", `week_${week}`, "quiz");
 
-  return delay({ success: true });
+  for (const item of generated) {
+    const qRef = doc(quizRef);
+    await setDoc(qRef, {
+      question: item.question,
+      difficulty: "medium",
+      createdAt: serverTimestamp(),
+    });
+  }
 }
 
 export async function listWeekQuiz(week) {
-  return delay(quizzesByWeek[week] || []);
+  const quizRef = collection(db, "weeks", `week_${week}`, "quiz");
+  const snapshot = await getDocs(quizRef);
+
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
 }
 
-export async function applyQuizEdit(questionId, instruction) {
-  for (const week in quizzesByWeek) {
-    const idx = quizzesByWeek[week].findIndex((q) => q.id === questionId);
-    if (idx !== -1) {
-      const original = quizzesByWeek[week][idx].question;
+export async function applyQuizEdit(questionId, instruction, week) {
+  const qRef = doc(db, "weeks", `week_${week}`, "quiz", questionId);
 
-      const updated = await editTextWithGemini({
-        originalText: original,
-        instruction,
-        mode: "quiz",
-      });
+  const updated = await editTextWithGemini({
+    originalText: instruction.originalText,
+    instruction: instruction.text,
+    mode: "quiz",
+  });
 
-      quizzesByWeek[week][idx].question = updated;
-      return quizzesByWeek[week][idx];
-    }
-  }
+  await setDoc(qRef, { question: updated }, { merge: true });
 
-  throw new Error("Question not found");
+  return updated;
 }
