@@ -5,8 +5,8 @@ import { iotDictionary } from "../mock/iotDictionary";
 import { Search } from "lucide-react";
 
 export default function Dictionary() {
- // const userRole = "teacher"; // change to "student" later
-const userRole = "student"; 
+ const userRole = "teacher"; // change to "student" later
+//const userRole = "student"; 
   const [terms, setTerms] = useState(iotDictionary);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
