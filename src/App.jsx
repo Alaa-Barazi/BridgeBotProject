@@ -13,7 +13,7 @@ import MentorLayout from "./layout/MentorLayout";
 import MentorDashboard from "./pages/mentor/mentorDashboard";
 import ViewProjects from "./pages/mentor/ViewProjects";
 import MentorForum from "./pages/mentor/MentorForum";
-import MentorBotInsight from "./pages/mentor/MentorBotInsight";
+import MentorBotInsight from "./pages/mentor/MentorAPIChange";
 import MentorFeedBack from "./pages/mentor/MentorFeedBack";
 import MentorDictionary from "./pages/mentor/MentorDictionary";
 import ProjectOverViewPage from "./pages/mentor/ProjectOverViewPage";
@@ -25,6 +25,7 @@ import Register from "./pages/auth/Register";
 import Architecture from "./pages/team/TeamProjectArchitecture";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import CourseQuiz from "./pages/CourseQuiz";
+import MentorAPIChange from "./pages/mentor/MentorAPIChange";
 
 const commonRouteItems = [
   { label: "Login", path: "/login", element: <Login /> },
@@ -64,9 +65,9 @@ export const MentorRouteItems = [
   { label: "Dictionary", path: "dictionary", element: <Dictionary /> },
   { label: "Forum", path: "forum", element: <MentorForum /> },
   {
-    label: "Bot Insights",
-    path: "bot-insights",
-    element: <MentorBotInsight />,
+    label: "API key Change",
+    path: "api-change",
+    element: <MentorAPIChange />,
   },
   { label: "Feedback", path: "feedback", element: <MentorFeedBack /> },
   { label: "Projects", path: "view-projects", element: <ViewProjects /> },

@@ -1,22 +1,49 @@
+// src/pages/auth/ForgotPassword.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+import { sendResetPasswordLink } from "../../services/authService";
+import { ALLOWED_DOMAIN } from "../../services/validators";
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Simulate API call
-    console.log("Reset link sent to:", email);
-    setSubmitted(true);
+    setIsLoading(true);
+
+    try {
+      await sendResetPasswordLink(email);
+      setSubmitted(true);
+    } catch (error) {
+      console.error("RESET PASSWORD ERROR:", error);
+
+      const code = error?.code;
+      const msg = String(error?.message || "");
+
+      if (msg.includes("end with")) {
+        alert(`Reset is allowed only with ${ALLOWED_DOMAIN}`);
+      } else if (code === "auth/invalid-email") {
+        alert("Invalid email address.");
+      } else if (code === "auth/user-not-found") {
+        // best practice: do not reveal if user exists
+        setSubmitted(true);
+      } else if (code === "auth/too-many-requests") {
+        alert("Too many requests. Please try again later.");
+      } else {
+        alert("Failed to send reset email. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <div className="w-full max-w-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow p-8">
-        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             🔑 Reset Password
@@ -36,7 +63,7 @@ const ForgotPassword = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="team@example.com"
+                placeholder={`name${ALLOWED_DOMAIN}`}
                 required
                 className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -44,9 +71,10 @@ const ForgotPassword = () => {
 
             <button
               type="submit"
-              className="w-full py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium transition shadow-sm"
+              disabled={isLoading}
+              className="w-full py-2 rounded-md bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-medium transition shadow-sm"
             >
-              Send Reset Link
+              {isLoading ? "Sending..." : "Send Reset Link"}
             </button>
           </form>
         ) : (

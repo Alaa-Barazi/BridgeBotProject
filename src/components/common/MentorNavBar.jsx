@@ -12,7 +12,7 @@ export default function MentorNavBar() {
     { label: "Projects", path: "/mentor/view-projects" },
     { label: "Dictionary", path: "/mentor/dictionary" },
     { label: "Forum", path: "/mentor/forum" },
-    { label: "Bot Insights", path: "/mentor/bot-insights" },
+    { label: "API key Change", path: "/mentor/api-change" },
     { label: "Feedback", path: "/mentor/feedback" },
   ];
 
