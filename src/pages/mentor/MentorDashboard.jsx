@@ -6,22 +6,22 @@
 // - Uses Tailwind classes (matches your project style)
 
 import { useEffect, useMemo, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import { auth, db } from "../../firebase";
+import { auth } from "../../firebase";
+import { getAllTeams, getAllUsers } from "../../services/mentorService";
 
 export default function MentorDashboard() {
   /* -----------------------------
      UI state
   ----------------------------- */
-  const [loading, setLoading] = useState(true); // shows "Loading…" while fetching
-  const [error, setError] = useState(""); // shows permission / general errors
-  const [showUsers, setShowUsers] = useState(false); // toggle for Users table
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [showUsers, setShowUsers] = useState(false);
 
   /* -----------------------------
-     Data state (from Firestore)
+     Data state
   ----------------------------- */
-  const [teams, setTeams] = useState([]); // all teams documents
-  const [users, setUsers] = useState([]); // all users documents
+  const [teams, setTeams] = useState([]);
+  const [users, setUsers] = useState([]);
 
   /* -----------------------------
      Load data once on mount
@@ -32,26 +32,17 @@ export default function MentorDashboard() {
       setError("");
 
       try {
-        // 1) Load all teams (requires: teams list allowed for mentor)
-        const teamsSnap = await getDocs(collection(db, "teams"));
-        const teamsData = teamsSnap.docs.map((d) => ({
-          id: d.id, // Firestore doc id
-          ...d.data(), // team fields (teamId, teamName, memberUids, ...)
-        }));
-
-        // 2) Load all users (requires: users list allowed for mentor)
-        const usersSnap = await getDocs(collection(db, "users"));
-        const usersData = usersSnap.docs.map((d) => ({
-          id: d.id,
-          ...d.data(), // user fields (uid, email, userName, teamId, ...)
-        }));
+        // Load both in parallel
+        const [teamsData, usersData] = await Promise.all([
+          getAllTeams(),
+          getAllUsers(),
+        ]);
 
         setTeams(teamsData);
         setUsers(usersData);
       } catch (e) {
         console.error("MentorDashboard load error:", e);
 
-        // Most common error: rules are not allowing list
         if (e?.code === "permission-denied") {
           setError(
             "Permission denied. Check Firestore Rules: mentor must be allowed to LIST users and teams."
@@ -69,12 +60,14 @@ export default function MentorDashboard() {
 
   /* -----------------------------
      Helper: Map uid -> user object
-     This lets us quickly find a user by uid
   ----------------------------- */
   const userByUid = useMemo(() => {
     const map = new Map();
     users.forEach((u) => {
+      // If you store uid inside the doc:
       if (u?.uid) map.set(u.uid, u);
+      // If sometimes uid is doc id:
+      else if (u?.id) map.set(u.id, u);
     });
     return map;
   }, [users]);
@@ -101,7 +94,6 @@ export default function MentorDashboard() {
             Mentor Dashboard
           </h1>
 
-          {/* Show current logged-in email */}
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             Logged in as:{" "}
             <span className="font-medium">
@@ -109,7 +101,7 @@ export default function MentorDashboard() {
             </span>
           </p>
 
-          {/* Toggle button to show/hide All Users table */}
+          {/* Toggle button */}
           <div className="mt-4">
             <button
               onClick={() => setShowUsers((v) => !v)}
@@ -121,7 +113,7 @@ export default function MentorDashboard() {
         </div>
 
         {/* =============================
-            Loading / Error states
+            Loading / Error
         ============================== */}
         {loading && (
           <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
@@ -136,13 +128,12 @@ export default function MentorDashboard() {
         )}
 
         {/* =============================
-            Main content (when ready)
+            Main content
         ============================== */}
         {!loading && !error && (
           <>
             {/* =============================
                 All Users (toggle)
-                - Only visible when showUsers === true
             ============================== */}
             {showUsers && (
               <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow p-6">
@@ -156,17 +147,14 @@ export default function MentorDashboard() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="text-left border-b border-gray-200 dark:border-gray-700">
-                        <th className="py-2 pr-4 text-gray-700 dark:text-gray-300">
+                        <th className="py-2 pr-4 text-gray-700 dark:text-gray-300 text-center align-middle">
                           Name
                         </th>
-                        <th className="py-2 pr-4 text-gray-700 dark:text-gray-300">
+                        <th className="py-2 pr-4 text-gray-700 dark:text-gray-300 text-center align-middle">
                           Email
                         </th>
-                        <th className="py-2 pr-4 text-gray-700 dark:text-gray-300">
+                        <th className="py-2 pr-4 text-gray-700 dark:text-gray-300 text-center align-middle">
                           Team
-                        </th>
-                        <th className="py-2 pr-4 text-gray-700 dark:text-gray-300">
-                          UID
                         </th>
                       </tr>
                     </thead>
@@ -188,10 +176,6 @@ export default function MentorDashboard() {
                           <td className="py-2 pr-4 text-gray-700 dark:text-gray-200">
                             {u.teamId || "—"}
                           </td>
-
-                          <td className="py-2 pr-4 text-xs text-gray-500">
-                            {u.uid || u.id || "—"}
-                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -201,7 +185,7 @@ export default function MentorDashboard() {
             )}
 
             {/* =============================
-                Teams + Members (default view)
+                Teams + Members
             ============================== */}
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
@@ -210,10 +194,7 @@ export default function MentorDashboard() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {sortedTeams.map((t) => {
-                  // teamKey: Firestore doc id or teamId field
                   const teamKey = t.teamId || t.id;
-
-                  // memberUids is expected to be an array
                   const members = Array.isArray(t.memberUids)
                     ? t.memberUids
                     : [];
@@ -223,7 +204,6 @@ export default function MentorDashboard() {
                       key={teamKey}
                       className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
                     >
-                      {/* Team header */}
                       <div className="text-base font-semibold text-gray-900 dark:text-white">
                         {t.teamName || `Team ${t.teamNumber || teamKey}`}
                       </div>
@@ -232,7 +212,6 @@ export default function MentorDashboard() {
                         teamId: {teamKey} | members: {members.length}
                       </div>
 
-                      {/* Members list */}
                       <div className="mt-3 space-y-2">
                         {members.length === 0 ? (
                           <div className="text-sm text-gray-500">
@@ -240,7 +219,6 @@ export default function MentorDashboard() {
                           </div>
                         ) : (
                           members.map((uid) => {
-                            // Find the user doc for this uid (if exists)
                             const u = userByUid.get(uid);
 
                             return (
@@ -259,17 +237,10 @@ export default function MentorDashboard() {
                                       </span>
                                     </>
                                   ) : (
-                                    // This means team.memberUids includes uid
-                                    // but we don't have a matching users/{uid} doc
                                     <span className="text-gray-500">
                                       {uid} (no user doc)
                                     </span>
                                   )}
-                                </div>
-
-                                {/* Show uid on the right */}
-                                <div className="text-xs text-gray-400">
-                                  {uid}
                                 </div>
                               </div>
                             );

@@ -1,4 +1,19 @@
-import { IoArrowBack } from "react-icons/io5"; // icon
+/**
+ * ProjectOverViewPage
+ * -------------------
+ * Mentor view for inspecting a single student project.
+ *
+ * Responsibilities:
+ * - Display project details, progress, and documents
+ * - Allow mentor feedback and notes
+ *
+ * Dark mode design:
+ * - Calm, readable surfaces
+ * - Clear section separation
+ * - No bright white blocks
+ */
+
+import { IoArrowBack } from "react-icons/io5";
 import HeaderSection from "../../components/overview/HeaderSection";
 import SummaryBox from "../../components/overview/SummaryBox";
 import DocumentsSection from "../../components/overview/DocumentsSection";
@@ -7,6 +22,7 @@ import FeedbackModal from "./FeedbackModal";
 import ActionButton from "../../components/common/ActionButton";
 import { useState } from "react";
 import FeedbackList from "../../components/feedback/FeedbackList";
+
 const sampleProjects = [
   {
     id: "1",
@@ -50,67 +66,88 @@ const ProjectOverViewPage = () => {
   const navigate = useNavigate();
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [feedbackList, setFeedbackList] = useState([]);
-  if (!project) return <p className="text-center">Project not found.</p>;
+
+  if (!project) {
+    return (
+      <p className="text-center text-gray-600 dark:text-slate-400">
+        Project not found.
+      </p>
+    );
+  }
 
   const handleSaveFeedback = (text) => {
-    const newFeedback = {
-      id: Date.now(),
-      user: "Mentor",
-      message: text,
-      timestamp: new Date().toLocaleString(),
-    };
-
-    setFeedbackList([...feedbackList, newFeedback]);
+    setFeedbackList([
+      ...feedbackList,
+      {
+        id: Date.now(),
+        user: "Mentor",
+        message: text,
+        timestamp: new Date().toLocaleString(),
+      },
+    ]);
   };
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
-      {/* Title */}
-      <h1 className="text-4xl font-bold text-center mb-10 text-gray-900 dark:text-white">
+    <div
+      className="p-8 max-w-5xl mx-auto
+                    bg-transparent dark:bg-[#0f172a]"
+    >
+      <h1
+        className="text-4xl font-bold text-center mb-10
+                     text-gray-900 dark:text-slate-200"
+      >
         Project Overview
       </h1>
 
-      {/* Back Button */}
       <button
         onClick={() => navigate("/mentor/view-projects")}
-        className="flex items-center gap-2 text-blue-600 dark:text-blue-400 
-                   hover:text-blue-700 dark:hover:text-blue-300 
-                   font-medium mb-6 transition"
+        className="flex items-center gap-2 mb-6 transition
+                   text-blue-600 dark:text-blue-400
+                   hover:text-blue-700 dark:hover:text-blue-300"
       >
         <IoArrowBack size={20} />
         Back to Projects
       </button>
 
-      {/* Header Section */}
-      <HeaderSection
-        projectName={project.name}
-        description={project.description}
-        progress={project.progress}
-        status={project.status}
-      />
+      <div className="space-y-8">
+        <HeaderSection
+          projectName={project.name}
+          description={project.description}
+          progress={project.progress}
+          status={project.status}
+        />
 
-      {/* Summary Section */}
-      <SummaryBox
-        teamLeader={project.leader}
-        category={project.category}
-        progress={project.progress}
-        status={project.status}
-      />
+        <SummaryBox
+          teamLeader={project.leader}
+          category={project.category}
+          progress={project.progress}
+          status={project.status}
+        />
 
-      {/* Notes */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow border border-gray-200 dark:border-gray-700 mb-10">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Notes and Feedback
-          </h3>
+        {/* Notes and feedback */}
+        <div
+          className="rounded-lg p-6
+                     bg-white dark:bg-[#111827]
+                     border border-gray-200 dark:border-[#1f2933]"
+        >
+          <div className="flex justify-between items-center mb-4">
+            <h3
+              className="text-xl font-semibold
+                           text-gray-900 dark:text-slate-200"
+            >
+              Notes and Feedback
+            </h3>
 
-          <ActionButton
-            text="Add Feedback"
-            onClick={() => setFeedbackModalOpen(true)}
-          />
+            <ActionButton
+              text="Add Feedback"
+              onClick={() => setFeedbackModalOpen(true)}
+            />
+          </div>
+
+          <FeedbackList feedback={feedbackList} />
         </div>
 
-        <FeedbackList feedback={feedbackList} />
+        <DocumentsSection documents={project.documents} />
       </div>
 
       <FeedbackModal
@@ -118,9 +155,6 @@ const ProjectOverViewPage = () => {
         onClose={() => setFeedbackModalOpen(false)}
         onSave={handleSaveFeedback}
       />
-
-      {/* Documents */}
-      <DocumentsSection documents={project.documents} />
     </div>
   );
 };

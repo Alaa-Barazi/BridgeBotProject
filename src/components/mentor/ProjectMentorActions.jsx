@@ -21,18 +21,28 @@ Quiz performance
 Etc.
       */
 }
+/**
+ * ProjectMentorActions
+ * --------------------
+ * Action buttons for mentors to inspect and manage a student project.
+ *
+ * Responsibilities:
+ * - Navigate to architecture, requirements, chatbot logs
+ * - Open full project overview
+ *
+ * Dark mode design:
+ * - Buttons remain clearly visible
+ * - No visual noise or harsh contrast
+ */
+
 const ProjectMentorActions = ({ projectId }) => {
   const navigate = useNavigate();
+
   return (
     <div className="flex flex-wrap gap-3 mt-4">
-      <ActionButton text="View Architecture" />
+      {/* <ActionButton text="View Architecture" />
       <ActionButton text="Open Requirements Doc" />
-      <ActionButton text="Chatbot Prompts Log" />
-      {/* <ActionButton text="Send Feedback" /> */}
-    {/*It should be    <ActionButton
-        text="Open Project Overview"
-        onClick={() => navigate(`/mentor/view-projects/${projectId}`)}
-      /> after recieving the projectID*/}
+      <ActionButton text="Chatbot Prompts Log" /> */}
       <ActionButton
         text="Open Project Overview"
         onClick={() => navigate(`/mentor/view-projects/${projectId}`)}

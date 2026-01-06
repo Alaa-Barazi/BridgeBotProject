@@ -78,7 +78,7 @@ const ChatPanel = forwardRef(function ChatPanel(
     lastGeminiCallRef.current = now;
 
     const genAI = new GoogleGenerativeAI(API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const buildQuizPrompt = (payload) => {
       // Evaluation-only mode
@@ -204,10 +204,10 @@ Return JSON with:
         expanded ? "w-105 h-140" : "w-85 h-110"
       }`}
     >
-      <div className="flex flex-col h-full bg-white border rounded-xl shadow-lg overflow-hidden">
+      <div className="flex flex-col h-full bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-xl shadow-lg overflow-hidden transition-colors">
         {/* Header */}
-        <div className="flex justify-between items-center px-4 py-3 bg-blue-300 rounded-t-xl">
-          <div className="dark:text-gray-900">
+        <div className="flex justify-between items-center px-4 py-3 bg-blue-300 dark:bg-blue-900 rounded-t-xl transition-colors">
+          <div className="text-gray-900 dark:text-gray-100">
             <h4 className="text-sm font-semibold">🤖 BridgeBot</h4>
             <p className="text-xs opacity-80">
               {projectName} • {stage}
@@ -215,14 +215,14 @@ Return JSON with:
           </div>
           <button
             onClick={() => setExpanded(!expanded)}
-            className="hover:bg-blue-400 rounded p-1 transition"
+            className="hover:bg-blue-400 dark:hover:bg-blue-800 rounded p-1 transition text-gray-900 dark:text-gray-100"
           >
             {expanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
           </button>
         </div>
 
         {/* Chat Area */}
-        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-gray-50">
+        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-gray-50 dark:bg-gray-950 transition-colors">
           {messages.map((m, i) => (
             <div
               key={i}
@@ -234,14 +234,14 @@ Return JSON with:
                 className={`px-3 py-2 rounded-lg text-sm max-w-[85%] ${
                   m.role === "user"
                     ? "bg-blue-600 text-white"
-                    : "bg-white border text-gray-800"
+                    : "bg-white dark:bg-gray-800 border dark:border-gray-700 text-gray-800 dark:text-gray-200"
                 }`}
               >
                 {m.text}
                 {m.imageUrl && (
                   <img
                     src={m.imageUrl}
-                    className="mt-2 rounded max-h-32 border"
+                    className="mt-2 rounded max-h-32 border dark:border-gray-600"
                     alt="Sent"
                   />
                 )}
@@ -257,7 +257,7 @@ Return JSON with:
         </div>
 
         {/* Input Area */}
-        <div className="bg-white p-3 border-t">
+        <div className="bg-white dark:bg-gray-800 p-3 border-t dark:border-gray-700 transition-colors">
           {imagePreview && (
             <div className="relative inline-block mb-2 group">
               <img
@@ -284,7 +284,7 @@ Return JSON with:
             />
             <button
               onClick={() => fileInputRef.current.click()}
-              className="p-2 text-gray-500 hover:bg-gray-100 rounded transition"
+              className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition"
             >
               📎
             </button>
@@ -293,7 +293,7 @@ Return JSON with:
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
               placeholder="Describe your hardware or ask a question..."
-              className="flex-1 px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+              className="flex-1 px-3 py-2 text-sm border dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 transition-colors"
             />
             <button
               onClick={sendMessage}

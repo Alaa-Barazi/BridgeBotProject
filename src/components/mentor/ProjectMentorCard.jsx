@@ -1,13 +1,31 @@
-import React from "react";
+/**
+ * ProjectMentorCard
+ * -----------------
+ * Card used by mentors to view and manage student projects.
+ *
+ * Responsibilities:
+ * - Display project overview information
+ * - Show current project status
+ * - Provide mentor actions
+ *
+ * Dark mode design:
+ * - Embedded card surface
+ * - No floating white blocks
+ * - Consistent with mentor layout
+ */
+
 import ProjectMentorView from "./ProjectMentorView";
 import ProjectMentorActions from "./ProjectMentorActions";
 import StatusIndicator from "./StatusIndicator";
-import { useParams } from "react-router-dom";
 
 const ProjectMentorCard = ({ project, projectId }) => {
-
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border p-6 shadow mb-6">
+    <div
+      className="rounded-lg p-6 mb-6
+                 bg-white dark:bg-[#111827]
+                 border border-gray-200 dark:border-[#1f2933]
+                 shadow-sm dark:shadow-none"
+    >
       <ProjectMentorView
         projectName={project.projectName}
         teamLeader={project.teamLeader}
@@ -16,9 +34,13 @@ const ProjectMentorCard = ({ project, projectId }) => {
         status={project.status}
       />
 
-      <StatusIndicator status={project.status} />
+      <div className="mt-4 flex justify-center">
+        <StatusIndicator status={project.status} />
+      </div>
 
-      <ProjectMentorActions projectId={projectId} />
+      <div className="mt-4">
+        <ProjectMentorActions projectId={projectId} />
+      </div>
     </div>
   );
 };

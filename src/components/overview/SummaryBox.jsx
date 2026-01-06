@@ -1,13 +1,39 @@
+/**
+ * SummaryBox
+ * ----------
+ * Displays a concise summary of a project for mentors.
+ *
+ * Responsibilities:
+ * - Show team leader and category
+ * - Display project status via StatusIndicator
+ *
+ * Dark mode design:
+ * - Calm surface with low contrast
+ * - No white text
+ * - Borders instead of heavy shadows
+ */
+
 import StatusIndicator from "../mentor/StatusIndicator";
 
 const SummaryBox = ({ teamLeader, category, status }) => {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow border border-gray-200 dark:border-gray-700 mb-6">
-      <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white text-center">
+    <div
+      className="rounded-lg p-6 mb-6
+                 bg-white dark:bg-[#111827]
+                 border border-gray-200 dark:border-[#1f2933]
+                 shadow-sm dark:shadow-none"
+    >
+      <h3
+        className="text-xl font-semibold mb-4 text-center
+                   text-gray-900 dark:text-slate-200"
+      >
         Summary
       </h3>
 
-      <div className="space-y-2 text-gray-700 dark:text-gray-300 text-center">
+      <div
+        className="space-y-2 text-center
+                   text-gray-700 dark:text-slate-300"
+      >
         <p>
           <span className="font-semibold">Team leader:</span> {teamLeader}
         </p>

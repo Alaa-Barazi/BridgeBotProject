@@ -1,3 +1,20 @@
+/**
+ * CourseQuiz Page
+ * ---------------
+ * Weekly course quiz with AI-based answer evaluation.
+ *
+ * Responsibilities:
+ * - Load quiz questions per week
+ * - Handle user answers and AI evaluation
+ * - Cache evaluations to reduce duplicate API calls
+ * - Provide clear feedback and explanations
+ *
+ * Dark mode design:
+ * - Calm, exam-like environment
+ * - Flat background with a single focused surface
+ * - Soft feedback colors without emotional intensity
+ */
+
 import { useEffect, useRef, useState } from "react";
 import QuestionsCard from "../components/common/QuestionsCard";
 import InputField from "../components/common/InputField";
@@ -8,8 +25,8 @@ import { listWeekQuiz } from "../services/quizService";
 export default function CourseQuiz() {
   const chatRef = useRef(null);
 
-  const evaluationCache = useRef({}); // ⛔ prevent duplicate Gemini calls
-  const lastCallRef = useRef(0); // ⏳ cooldown tracking
+  const evaluationCache = useRef({});
+  const lastCallRef = useRef(0);
 
   const GEMINI_COOLDOWN_MS = 12000;
 
@@ -33,7 +50,7 @@ export default function CourseQuiz() {
       setQuestions(data);
       setCurrentIndex(0);
       resetFeedback();
-    } catch (e) {
+    } catch {
       setError("Failed to load quiz for this week.");
     }
   };
@@ -56,7 +73,6 @@ export default function CourseQuiz() {
 
     const key = `${currentIndex}:${answer.trim().toLowerCase()}`;
 
-    // ♻️ reuse cached evaluation
     if (evaluationCache.current[key]) {
       handleQuizEvent(evaluationCache.current[key]);
       return;
@@ -84,7 +100,6 @@ export default function CourseQuiz() {
     setFeedback(data.isCorrect);
     setExplanation(data.explanation || "");
 
-    // store evaluation to avoid extra Gemini calls
     const key = `${currentIndex}:${answer.trim().toLowerCase()}`;
     evaluationCache.current[key] = data;
   };
@@ -95,61 +110,89 @@ export default function CourseQuiz() {
   };
 
   if (questions.length === 0) {
-    return <div className="p-6 text-center">No quiz for this week.</div>;
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center
+                      bg-gray-50 dark:bg-[#0f172a]"
+      >
+        <p className="text-gray-600 dark:text-slate-400">
+          No quiz for this week.
+        </p>
+      </div>
+    );
   }
 
   return (
-    <div className="p-6 max-w-xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-center">Course Quiz</h1>
+    <div
+      className="min-h-screen flex justify-center pt-16
+                 bg-gray-50 dark:bg-[#0f172a]"
+    >
+      <div>
+        <h1
+          className="text-3xl font-bold mb-6 text-center
+                       text-gray-900 dark:text-slate-200"
+        >
+          Course Quiz
+        </h1>
 
-      <QuestionsCard
-        questionNo={currentIndex + 1}
-        question={questions[currentIndex].question}
-      />
-
-      <div className="mt-6">
-        <InputField
-          label="Your answer"
-          value={answer}
-          onChange={(e) => setAnswer(e.target.value)}
-          placeholder="Write your answer"
-          disabled={isThinking}
+        <QuestionsCard
+          questionNo={currentIndex + 1}
+          question={questions[currentIndex].question}
         />
 
-        <div className="mt-4">
-          <PrimaryButton
-            label={isThinking ? "Checking..." : "Submit answer"}
-            onClick={submitAnswer}
-            disabled={isThinking || !answer.trim()}
+        <div className="mt-6">
+          <InputField
+            label="Your answer"
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            placeholder="Write your answer"
+            disabled={isThinking}
           />
-        </div>
 
-        {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
-      </div>
+          <div className="mt-4">
+            <PrimaryButton
+              label={isThinking ? "Checking..." : "Submit answer"}
+              onClick={submitAnswer}
+              disabled={isThinking || !answer.trim()}
+            />
+          </div>
 
-      {feedback !== null && !isThinking && (
-        <div
-          className={`mt-6 p-4 rounded-lg border transition ${
-            feedback
-              ? "bg-green-50 border-green-300"
-              : "bg-red-50 border-red-300"
-          }`}
-        >
-          <p className="font-bold">
-            {feedback ? "Well done" : "Needs clarification"}
-          </p>
-
-          <p className="text-sm mt-2">{explanation}</p>
-
-          {currentIndex < questions.length - 1 && (
-            <div className="mt-4">
-              <PrimaryButton label="Next question" onClick={nextQuestion} />
-            </div>
+          {error && (
+            <p
+              className="text-sm mt-3
+                          text-red-600 dark:text-red-400"
+            >
+              {error}
+            </p>
           )}
         </div>
-      )}
 
-      {/* AI brain - evaluation only */}
+        {feedback !== null && !isThinking && (
+          <div
+            className={`mt-6 p-4 rounded-lg border transition
+              ${
+                feedback
+                  ? "bg-green-50 border-green-300  dark:bg-green-900/20 dark:border-green-800 dark:text-green-200"
+                  : "bg-red-50 border-red-300 dark:bg-red-900/20 dark:border-red-800 dark:text-red-200"
+              }
+            `}
+          >
+            <p className="font-semibold">
+              {feedback ? "Well done" : "Needs clarification"}
+            </p>
+
+            <p className="text-sm mt-2 opacity-90">{explanation}</p>
+
+            {currentIndex < questions.length - 1 && (
+              <div className="mt-4">
+                <PrimaryButton label="Next question" onClick={nextQuestion} />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* AI evaluation engine */}
       <ChatPanel
         ref={chatRef}
         quizMode={true}
