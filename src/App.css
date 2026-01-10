@@ -1,8 +1,8 @@
+@custom-variant dark (&:where(.dark, .dark *));
 @import "tailwindcss";
 #root {
   margin: 0;
   text-align: center;
- 
 }
 
 /* .logo {

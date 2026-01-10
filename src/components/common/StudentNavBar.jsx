@@ -17,6 +17,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import ActionButton from "./ActionButton";
+import ThemeToggle from "./ThemeToggle";
 
 export default function StudentNavBar() {
   const currentProjectId = "p-101"; // Placeholder project ID
@@ -67,6 +68,7 @@ export default function StudentNavBar() {
 
       {/* Desktop actions */}
       <div className="hidden md:flex items-center space-x-4">
+        <ThemeToggle />
         <ActionButton
           buttonStyle="text-gray-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400"
           onClick={() => navigate("/profile")}
