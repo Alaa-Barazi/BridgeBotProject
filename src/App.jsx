@@ -10,7 +10,7 @@ import Forum from "./pages/Forum";
 import LearningDiary from "./pages/LearningDiary";
 import Profile from "./pages/auth/Profile";
 import MentorLayout from "./layout/MentorLayout";
-import MentorDashboard from "./pages/mentor/mentorDashboard";
+import MentorDashboard from "./pages/mentor/MentorDashboard";
 import ViewProjects from "./pages/mentor/ViewProjects";
 import MentorForum from "./pages/mentor/MentorForum";
 import MentorBotInsight from "./pages/mentor/MentorAPIChange";
