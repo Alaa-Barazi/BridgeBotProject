@@ -26,6 +26,7 @@ import Architecture from "./pages/team/TeamProjectArchitecture";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import CourseQuiz from "./pages/CourseQuiz";
 import MentorAPIChange from "./pages/mentor/MentorAPIChange";
+import MentorGenerationPage from "./pages/mentor/MentorGenerationPage";
 
 const commonRouteItems = [
   { label: "Login", path: "/login", element: <Login /> },
@@ -60,7 +61,7 @@ export const routeItems = [
 ];
 
 export const MentorRouteItems = [
-  { label: "Home", path: "", element: <MentorDashboard /> },
+  { label: "Home", path: "", element: <MentorGenerationPage /> },
   { label: "Dashboard", path: "dashboard", element: <MentorDashboard /> },
   { label: "Dictionary", path: "dictionary", element: <Dictionary /> },
   { label: "Forum", path: "forum", element: <MentorForum /> },
