@@ -18,28 +18,47 @@ export default function AICommandPanel({
   };
 
   return (
-    <div className="mt-3 border rounded-lg p-3 bg-white">
-      <p className="text-xs font-semibold">{title}</p>
+    <div
+      className="mt-3 rounded-lg p-3
+        border border-gray-200 dark:border-gray-700
+        bg-white dark:bg-gray-900/60
+        text-gray-900 dark:text-gray-100
+        transition"
+    >
+      <p className="text-xs font-semibold mb-2">{title}</p>
 
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder={placeholder || "Describe the change..."}
-        className="w-full border rounded-md px-3 py-2 text-sm mt-2"
+        className="w-full mt-1 px-3 py-2 text-sm rounded-md
+          border border-gray-300 dark:border-gray-600
+          bg-white dark:bg-gray-800
+          text-gray-900 dark:text-gray-100
+          placeholder-gray-400 dark:placeholder-gray-500
+          focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
 
-      <div className="flex justify-end gap-2 mt-2">
+      <div className="flex justify-end gap-2 mt-3">
         <button
           onClick={onCancel}
           disabled={busy}
-          className="text-sm border px-3 py-1 rounded-md disabled:opacity-60"
+          className="text-sm px-3 py-1 rounded-md
+            border border-gray-300 dark:border-gray-600
+            text-gray-700 dark:text-gray-300
+            hover:bg-gray-100 dark:hover:bg-gray-800
+            disabled:opacity-60 transition"
         >
           Cancel
         </button>
+
         <button
           onClick={submit}
           disabled={busy || !text.trim()}
-          className="text-sm bg-blue-600 text-white px-3 py-1 rounded-md disabled:opacity-60"
+          className="text-sm px-3 py-1 rounded-md
+            bg-blue-600 hover:bg-blue-700
+            text-white
+            disabled:opacity-60 transition"
         >
           {busy ? "Applying..." : "Apply"}
         </button>

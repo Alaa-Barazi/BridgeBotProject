@@ -1,26 +1,11 @@
-/**
- * StudentNavBar
- * -------------
- * Main navigation bar for student-facing pages in BridgeBot.
- *
- * Responsibilities:
- * - Display primary navigation links
- * - Provide access to profile and logout actions
- * - Adapt responsively for desktop and mobile
- *
- * Dark mode design:
- * - Flat, calm background (no gradients)
- * - Low-contrast text and hover states
- * - Navbar stays visually quieter than page content
- */
-
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ActionButton from "./ActionButton";
 import ThemeToggle from "./ThemeToggle";
+import MobileNavMenu from "./MobileNavMenu";
 
 export default function StudentNavBar() {
-  const currentProjectId = "p-101"; // Placeholder project ID
+  const currentProjectId = "p-101"; // Placeholder
   const [openMenu, setOpenMenu] = useState(false);
   const navigate = useNavigate();
 
@@ -35,17 +20,26 @@ export default function StudentNavBar() {
     { label: "ChatBot", path: "/chatbot" },
   ];
 
+  // ✅ Auto-close mobile menu on resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setOpenMenu(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <nav
-      className="w-full px-6 py-3 flex items-center justify-between
+      className="relative w-full px-6 py-3 flex items-center justify-between
                  bg-white dark:bg-[#0b1220]
                  border-b border-gray-200 dark:border-[#1f2933]"
     >
       {/* Logo */}
-      <h2
-        className="text-xl font-bold
-                     text-gray-900 dark:text-slate-200"
-      >
+      <h2 className="text-xl font-bold text-gray-900 dark:text-slate-200">
         BridgeBot
       </h2>
 
@@ -57,8 +51,7 @@ export default function StudentNavBar() {
               to={item.path}
               className="px-3 py-2 rounded-md text-sm transition
                          text-gray-700 dark:text-slate-300
-                         hover:bg-gray-100 dark:hover:bg-[#111827]
-                         hover:text-gray-900 dark:hover:text-slate-200"
+                         hover:bg-gray-100 dark:hover:bg-[#111827]"
             >
               {item.label}
             </Link>
@@ -70,12 +63,12 @@ export default function StudentNavBar() {
       <div className="hidden md:flex items-center space-x-4">
         <ThemeToggle />
         <ActionButton
-          buttonStyle="text-gray-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400"
+          buttonStyle="text-gray-600 dark:text-slate-300 hover:text-blue-600"
           onClick={() => navigate("/profile")}
           text="Profile"
         />
         <ActionButton
-          buttonStyle="text-gray-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400"
+          buttonStyle="text-gray-600 dark:text-slate-300 hover:text-red-600"
           onClick={() => {}}
           text="Logout"
         />
@@ -84,51 +77,19 @@ export default function StudentNavBar() {
       {/* Mobile hamburger */}
       <button
         className="md:hidden text-gray-700 dark:text-slate-300"
-        onClick={() => setOpenMenu(!openMenu)}
+        onClick={() => setOpenMenu((prev) => !prev)}
+        aria-label="Toggle menu"
       >
         ☰
       </button>
 
       {/* Mobile menu */}
-      {openMenu && (
-        <div
-          className="absolute top-16 left-0 w-full z-50 p-4 md:hidden
-                     bg-white dark:bg-[#0b1220]
-                     border-t border-gray-200 dark:border-[#1f2933]"
-        >
-          <ul className="flex flex-col space-y-3">
-            {navBarItems.map((item) => (
-              <li key={item.path}>
-                <Link
-                  to={item.path}
-                  className="block px-3 py-2 rounded-md transition
-                             text-gray-700 dark:text-slate-300
-                             hover:bg-gray-100 dark:hover:bg-[#111827]"
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-[#1f2933]">
-            <button
-              className="w-full text-left py-2 transition
-                         text-gray-600 dark:text-slate-300
-                         hover:text-blue-600 dark:hover:text-blue-400"
-            >
-              Profile
-            </button>
-            <button
-              className="w-full text-left py-2 transition
-                         text-gray-600 dark:text-slate-300
-                         hover:text-red-600 dark:hover:text-red-400"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      )}
+      <MobileNavMenu
+        open={openMenu}
+        items={navBarItems}
+        onClose={() => setOpenMenu(false)}
+        onProfile={() => navigate("/profile")}
+      />
     </nav>
   );
 }

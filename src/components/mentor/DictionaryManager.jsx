@@ -28,8 +28,9 @@ export default function DictionaryManager({ week }) {
   };
 
   return (
-    <div className="bg-white border rounded-xl p-4">
-      <div className="flex justify-between">
+    <div className="rounded-xl p-2 text-gray-900 dark:text-gray-100">
+      {/* Header */}
+      <div className="flex justify-between items-center">
         <h2 className="text-sm font-semibold">Dictionary - Week {week}</h2>
 
         <button
@@ -46,7 +47,10 @@ export default function DictionaryManager({ week }) {
             }
           }}
           disabled={generating}
-          className="px-3 py-2 text-sm bg-emerald-600 text-white rounded-md disabled:opacity-60 flex items-center gap-2"
+          className="px-3 py-2 text-sm rounded-md
+            bg-emerald-600 hover:bg-emerald-700
+            text-white disabled:opacity-60
+            flex items-center gap-2 transition"
         >
           {generating && (
             <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
@@ -54,35 +58,60 @@ export default function DictionaryManager({ week }) {
           {generating ? "Generating dictionary..." : "Generate dictionary"}
         </button>
       </div>
-      {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
 
+      {/* Status messages */}
       {generating && (
-        <p className="text-xs text-gray-500 mt-2 italic">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 italic">
           BridgeBot is extracting terms from the documents
         </p>
       )}
+
+      {error && (
+        <p className="text-sm text-red-600 dark:text-red-400 mt-2">{error}</p>
+      )}
+
+      {/* Dictionary entries */}
       <div className="mt-4 space-y-2">
         {entries.map((e) => (
-          <div key={e.id} className="border rounded-lg p-3 bg-gray-50">
-            <div className="flex justify-between">
-              <div>
-                <p className="font-semibold text-sm">{e.term}</p>
-                <p className="text-sm">{e.definition}</p>
+          <div
+            key={e.id}
+            className="border border-gray-200 dark:border-gray-700
+              rounded-lg p-4
+              bg-gray-50 dark:bg-gray-900/50
+              transition"
+          >
+            <div className="flex gap-4 items-start">
+              {/* Term + definition */}
+              <div className="flex-1">
+                <p className="font-semibold text-sm mb-1">{e.term}</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed flex">
+                  {e.definition}
+                </p>
               </div>
-              <button
-                onClick={() => setEditingId(e.id)}
-                className="text-xs border px-2 py-1 rounded-md"
-              >
-                Edit with AI
-              </button>
+
+              {/* Action */}
+              <div className="shrink-0">
+                <button
+                  onClick={() => setEditingId(e.id)}
+                  className="text-xs px-2 py-1 rounded-md
+                    border border-gray-300 dark:border-gray-600
+                    text-gray-700 dark:text-gray-300
+                    hover:bg-gray-100 dark:hover:bg-gray-800
+                    transition whitespace-nowrap"
+                >
+                  Edit with AI
+                </button>
+              </div>
             </div>
 
             {editingId === e.id && (
-              <AICommandPanel
-                title={`Edit definition for "${e.term}"`}
-                onApply={onApplyEdit}
-                onCancel={() => setEditingId(null)}
-              />
+              <div className="mt-3">
+                <AICommandPanel
+                  title={`Edit definition for "${e.term}"`}
+                  onApply={onApplyEdit}
+                  onCancel={() => setEditingId(null)}
+                />
+              </div>
             )}
           </div>
         ))}
