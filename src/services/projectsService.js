@@ -2,7 +2,6 @@
 import { db, auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
-
 import {
   collection,
   query,
@@ -265,7 +264,9 @@ export function subscribeTeamProjectSetup({ onState } = {}) {
         return;
       }
 
-      const tid = await getTeamIdByUserUid(user.uid, { syncLocalStorage: true });
+      const tid = await getTeamIdByUserUid(user.uid, {
+        syncLocalStorage: true,
+      });
       emit({ loading: false, teamId: tid, error: "" });
     } catch (err) {
       console.error("SETUP SUBSCRIBE ERROR:", err);
@@ -407,4 +408,18 @@ export function subscribeTeamProjectPage(projectId, { onState } = {}) {
   });
 
   return unsub;
+}
+
+/* =========================
+Fetch all projects
+========================= */
+export async function fetchProjectsMap() {
+  const snapshot = await getDocs(collection(db, "projects"));
+  const projectsMap = {};
+
+  snapshot.forEach((doc) => {
+    projectsMap[doc.id] = doc.data().projectName;
+  });
+
+  return projectsMap;
 }

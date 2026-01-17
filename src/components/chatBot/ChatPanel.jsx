@@ -25,6 +25,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { mockProjectExample } from "../../mock/mockProject";
 import { useSearchParams, useParams } from "react-router-dom";
 import { getProjectById } from "../../services/projectsService";
+import { saveBridgeBotQA } from "../../services/QAService";
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 const ChatPanel = forwardRef(function ChatPanel(
@@ -50,7 +51,7 @@ const ChatPanel = forwardRef(function ChatPanel(
   const [expanded, setExpanded] = useState(false);
   // NEW: open state (Visible vs Hidden Bubble)
   const [isOpen, setIsOpen] = useState(false);
-
+  const studentId = localStorage.getItem("userId");
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [projectContext, setProjectContext] = useState(initialProjectContext);
@@ -114,7 +115,7 @@ const ChatPanel = forwardRef(function ChatPanel(
     lastGeminiCallRef.current = now;
 
     const genAI = new GoogleGenerativeAI(API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const buildQuizPrompt = (payload) => {
       if (typeof payload === "object" && payload.question && payload.answer) {
@@ -135,6 +136,9 @@ INSTRUCTIONS:
 - If incorrect, explain why and provide the correct concept
 - If partially correct, acknowledge what is right and clarify what is missing
 - Keep the explanation concise and educational
+- Keep the answers short and to the point, up to 2 sentences
+- Use simple language suitable for learners
+
 - Do not mention grades or scores
 - Do not ask a follow-up question
 
@@ -148,7 +152,25 @@ RETURN ONLY VALID JSON:
       return `Adaptive IoT quiz examiner. STUDENT MESSAGE: "${payload}". Return JSON.`;
     };
 
-    const PROJECT_PROMPT = `Engineering mentor rules... Project: ${projectName}, Stage: ${stage}, User message: "${userText}"`;
+    const PROJECT_PROMPT = `
+You are BridgeBot, a Socratic engineering mentor.
+
+CONTEXT:
+Project: ${projectName}
+Stage: ${stage}
+
+INSTRUCTIONS:
+- Respond in a maximum of 2 short sentences
+- Do NOT give the final answer directly
+- Guide the student using hints, reasoning cues, or leading questions
+- Focus on how to think, not what to write
+- Be concise and practical
+- Avoid explanations longer than 2 sentences
+
+USER MESSAGE:
+"${userText}"
+`;
+
     const prompt = quizMode ? buildQuizPrompt(userText) : PROJECT_PROMPT;
 
     let payload = [prompt];
@@ -187,6 +209,7 @@ RETURN ONLY VALID JSON:
 
   const sendMessage = async () => {
     if (!input.trim() && !imageFile) return;
+
     const text = input;
     const currentImage = imagePreview;
 
@@ -196,8 +219,17 @@ RETURN ONLY VALID JSON:
 
     try {
       const reply = await askGemini(text);
+
       setMessages((p) => [...p, { role: "bot", text: reply }]);
       clearImage();
+
+      await saveBridgeBotQA({
+        studentId,
+        projectId,
+        question: text,
+        answer: reply,
+      });
+      console.log("saved to db");
     } catch (e) {
       setMessages((p) => [...p, { role: "bot", text: "Error: " + e.message }]);
     } finally {

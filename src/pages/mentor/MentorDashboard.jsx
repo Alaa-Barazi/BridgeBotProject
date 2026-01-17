@@ -8,6 +8,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { auth } from "../../firebase";
 import { getAllTeams, getAllUsers } from "../../services/mentorService";
+import {
+  exportReadableBridgeBotQAtoExcel,
+  fetchAllBridgeBotQAReadable,
+} from "../../services/QAService";
 
 export default function MentorDashboard() {
   /* -----------------------------
@@ -82,6 +86,10 @@ export default function MentorDashboard() {
       return A.localeCompare(B, undefined, { numeric: true });
     });
   }, [teams]);
+  const handleDownloadAllBridgeBotQA = async () => {
+    const rows = await fetchAllBridgeBotQAReadable();
+    exportReadableBridgeBotQAtoExcel(rows);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
@@ -102,12 +110,18 @@ export default function MentorDashboard() {
           </p>
 
           {/* Toggle button */}
-          <div className="mt-4">
+          <div className="mt-4   space-x-4">
             <button
               onClick={() => setShowUsers((v) => !v)}
               className="px-4 py-2 rounded-md bg-gray-900 text-white dark:bg-gray-200 dark:text-gray-900"
             >
               {showUsers ? "Hide Users" : "Show Users"}
+            </button>
+            <button
+              onClick={() => handleDownloadAllBridgeBotQA()}
+              className="px-4 py-2 rounded-md bg-green-900 text-white dark:bg-green-200 dark:text-gray-900 cursor-pointer"
+            >
+              Download Conversations
             </button>
           </div>
         </div>

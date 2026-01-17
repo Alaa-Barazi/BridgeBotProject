@@ -22,6 +22,8 @@ export default function Login() {
       if (res.role === "mentor") {
         navigate("/mentor/dashboard");
       } else {
+        localStorage.setItem("teamId", res.teamId);
+        localStorage.setItem("userId", res.uid);
         navigate("/profile");
       }
     } catch (error) {

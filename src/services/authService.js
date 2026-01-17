@@ -17,6 +17,8 @@ import {
   updateDoc,
   serverTimestamp,
   arrayUnion,
+  getDocs,
+  collection,
 } from "firebase/firestore";
 
 import {
@@ -100,7 +102,7 @@ export async function loginWithEmail(email, password) {
   if (!teamId) throw new Error("teamId missing in users/{uid}.");
 
   localStorage.setItem("teamId", teamId);
-  return { user, role: "student", teamId };
+  return { user, role: "student", teamId, uid };
 }
 
 /* =========================
@@ -190,7 +192,8 @@ export async function sendResetPasswordLink(email) {
    ========================= */
 export async function loadStudentProfile(uid) {
   const userSnap = await getDoc(doc(db, "users", uid));
-  if (!userSnap.exists()) throw new Error("User profile not found (users/{uid}).");
+  if (!userSnap.exists())
+    throw new Error("User profile not found (users/{uid}).");
 
   const userData = userSnap.data();
   const teamId = String(userData.teamId || "").trim();
@@ -246,4 +249,19 @@ export async function logout() {
   await signOut(auth);
   localStorage.removeItem("teamId");
   return true;
+}
+
+/* =========================
+  Fetch aAll Users
+  ========================= */
+//Fetch user and projects
+export async function fetchUsersMap() {
+  const snapshot = await getDocs(collection(db, "users"));
+  const usersMap = {};
+
+  snapshot.forEach((doc) => {
+    usersMap[doc.id] = doc.data().userName;
+  });
+
+  return usersMap;
 }
