@@ -1,4 +1,3 @@
-// src/components/overview/DocumentsSection.jsx
 import React, { useMemo, useState } from "react";
 import DocumentViewerModal from "./DocumentViewerModal";
 
@@ -45,20 +44,33 @@ const DocumentsSection = ({ documents = [] }) => {
           {docs.map((doc) => (
             <div
               key={doc?.id}
-              onClick={() => setOpenDoc(doc)}
-              className="cursor-pointer bg-white dark:bg-gray-800
-                         border border-gray-200 dark:border-gray-700
-                         rounded-lg p-5 shadow-sm hover:shadow-md transition"
+              className="bg-white dark:bg-gray-800
+               border border-gray-200 dark:border-gray-700
+               rounded-lg p-5 shadow-sm hover:shadow-md transition"
             >
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                {getTitle(doc)}
-              </h3>
+              <div onClick={() => setOpenDoc(doc)} className="cursor-pointer">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                  {getTitle(doc)}
+                </h3>
 
-              <p className="text-sm text-gray-500 mt-1">
-                {getUpdated(doc)
-                  ? `Last updated: ${getUpdated(doc)}`
-                  : "Last updated: -"}
-              </p>
+                <p className="text-sm text-gray-500 mt-1">
+                  {getUpdated(doc)
+                    ? `Last updated: ${getUpdated(doc)}`
+                    : "Last updated: -"}
+                </p>
+              </div>
+
+              <div className="mt-4 flex justify-end">
+                <button
+                  className="text-blue-600 hover:text-blue-700 text-sm underline"
+                  onClick={(e) => {
+                    e.stopPropagation(); // שלא יפתח Modal
+                    downloadDoc(doc); // ✅ הורדה
+                  }}
+                >
+                  Open
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -73,6 +85,49 @@ const DocumentsSection = ({ documents = [] }) => {
       />
     </div>
   );
+};
+const downloadDoc = async (d) => {
+  const url = d?.downloadURL || d?.dataUrl || d?.url || "";
+  if (!url) {
+    alert("No file link found.");
+    return;
+  }
+
+  // שם קובץ (תני גם סיומת אם יש לך)
+  const filename = (d?.fileName || d?.title || "document").trim();
+
+  // אם זה dataUrl (base64) — הורדה ישירה
+  if (url.startsWith("data:")) {
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    return;
+  }
+
+  // אם זה URL רגיל — נאלץ הורדה עם blob
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Failed to fetch file.");
+
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    URL.revokeObjectURL(blobUrl);
+  } catch (e) {
+    console.error(e);
+    // fallback: לפתוח בטאב חדש אם fetch נחסם (CORS)
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
 };
 
 export default DocumentsSection;

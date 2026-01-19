@@ -59,10 +59,14 @@ const Forum = () => {
   };
 
   const sortedAnswers = (answers) => {
-    const arr = Array.isArray(answers) ? answers : [];
+    if (!answers) return [];
+
+    // RTDB stores objects, not arrays
+    const arr = Array.isArray(answers) ? answers : Object.values(answers);
+
     return [...arr].sort((a, b) => {
-      const at = a?.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-      const bt = b?.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+      const at = typeof a?.createdAt === "number" ? a.createdAt : 0;
+      const bt = typeof b?.createdAt === "number" ? b.createdAt : 0;
       return at - bt;
     });
   };
@@ -89,7 +93,9 @@ const Forum = () => {
 
   const getDateText = (ts) => {
     if (!ts) return "";
-    const ms = ts?.toMillis ? ts.toMillis() : null;
+    const ms =
+      typeof ts === "number" ? ts : ts?.toMillis ? ts.toMillis() : null;
+
     if (!ms) return "";
     return new Date(ms).toLocaleString();
   };

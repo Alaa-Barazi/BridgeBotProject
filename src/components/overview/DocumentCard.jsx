@@ -1,5 +1,5 @@
 import { LuFileText } from "react-icons/lu";
-import ActionButton from "../common/ActionButton"
+import ActionButton from "../common/ActionButton";
 const DocumentCard = ({ title, lastUpdated, onOpen }) => {
   return (
     <div

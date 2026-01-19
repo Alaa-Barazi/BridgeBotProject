@@ -209,8 +209,10 @@ export default function MentorDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {sortedTeams.map((t) => {
                   const teamKey = t.teamId || t.id;
-                  const members = Array.isArray(t.memberUids)
-                    ? t.memberUids
+                  const members = t?.memberUids
+                    ? Array.isArray(t.memberUids)
+                      ? t.memberUids
+                      : Object.keys(t.memberUids)
                     : [];
 
                   return (

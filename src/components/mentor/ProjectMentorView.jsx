@@ -22,8 +22,10 @@ const ProjectMentorView = ({
 }) => {
   return (
     <div className="mb-4">
-      <h2 className="text-xl font-semibold mb-1
-                     text-gray-900 dark:text-slate-200">
+      <h2
+        className="text-xl font-semibold mb-1
+                     text-gray-900 dark:text-slate-200"
+      >
         {projectName}
       </h2>
 
@@ -36,17 +38,15 @@ const ProjectMentorView = ({
       </p>
 
       <div className="mt-3">
-        <div className="flex items-center justify-between text-sm mb-1
-                        text-gray-700 dark:text-slate-300">
+        <div
+          className="flex items-center justify-between text-sm mb-1
+                        text-gray-700 dark:text-slate-300"
+        >
           <span className="font-medium">Progress</span>
           <span>{progress}%</span>
         </div>
 
-        <progress
-          value={progress}
-          max="100"
-          className="w-full h-2 rounded"
-        />
+        <progress value={progress} max="100" className="w-full h-2 rounded" />
       </div>
 
       <p className="mt-2 text-sm text-gray-700 dark:text-slate-300">
