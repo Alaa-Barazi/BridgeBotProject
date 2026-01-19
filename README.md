@@ -1,16 +1,66 @@
-# React + Vite
+BridgeBot - AI-Powered Academic Project Assistant
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+BridgeBot is an AI-powered assistant designed to support student project teams and mentors throughout the academic project lifecycle.
+The system combines Firebase infrastructure with Generative AI to provide intelligent Q&A, documentation support, and project insights in a single platform.
 
-Currently, two official plugins are available:
+BridgeBot focuses on transparency, traceability, and real-world system design principles.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+✨ Key Features
 
-## React Compiler
+🤖 AI Chatbot (BridgeBot)
+Intelligent question answering based on project context and retrieved documents.
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+📚 RAG-Based Knowledge Engine
+Uses Retrieval-Augmented Generation to provide grounded, reliable answers instead of hallucinated responses.
 
-## Expanding the ESLint configuration
+👥 Role-Based Access Control
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Students: Ask questions, view project-related content
+
+Mentors: View all conversations, export data, manage materials
+
+🗂 Realtime Data Logging
+
+All chatbot questions and answers are stored securely in Firebase Realtime Database
+
+Full mentor visibility for transparency and review
+
+📊 Mentor Dashboard
+
+View all BridgeBot conversations
+
+Export readable Q&A logs to Excel
+
+Monitor student engagement
+
+🔐 Secure Authentication
+
+Firebase Authentication
+
+Role detection via Realtime Database
+
+Strict database security rules
+
+🧠 System Architecture (High Level)
+
+Frontend: React
+
+Backend Services:
+
+Firebase Authentication
+
+Firebase Realtime Database
+
+AI Layer:
+
+Google Gemini (Generative AI)
+
+RAG pipeline (retrieval + generation)
+
+Data Export:
+
+Excel export using XLSX
+
+
+Link for the site:
+https://bridge-bot-project-5h9e.vercel.app/
