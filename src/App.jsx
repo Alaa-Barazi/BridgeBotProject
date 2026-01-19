@@ -104,7 +104,7 @@ function App() {
             <Route key={item.path} path={item.path} element={item.element} />
           ))}
           <Route
-            path="view-projects/:projectId"
+            path="project-overview/:projectId"
             element={<ProjectOverViewPage />}
           />
         </Route>

@@ -1,23 +1,20 @@
-// src/services/projectsService.js
-import { db, auth } from "../firebase";
+// src/services/projectsService.js  (RTDB VERSION - notes)
+import { rtdb, auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
 import {
-  collection,
+  ref,
+  get,
+  set,
+  update,
+  push,
   query,
-  where,
-  getDocs,
-  doc,
-  getDoc,
-  orderBy,
-  limit,
-  addDoc,
+  orderByChild,
+  equalTo,
+  limitToFirst,
   serverTimestamp,
-  updateDoc,
-  setDoc,
-  arrayUnion,
-  deleteDoc,
-} from "firebase/firestore";
+  onValue,
+} from "firebase/database";
 
 /* =========================
    Helpers
@@ -37,37 +34,36 @@ function getCurrentUserOrThrow() {
 }
 
 /**
- * ✅ Ensures teams/{teamId} exists AND includes current user in memberUids.
- * Required because Firestore Rules check membership via teams/{teamId}.
+ * ✅ Ensures teams/{teamId} exists AND includes current user in memberUids (MAP).
  */
-async function ensureTeamDoc(teamId) {
+async function ensureTeamNode(teamId) {
   const user = getCurrentUserOrThrow();
   const tid = requireStr("teamId", teamId);
 
-  const teamRef = doc(db, "teams", tid);
-  const snap = await getDoc(teamRef);
+  const teamRef = ref(rtdb, `teams/${tid}`);
+  const snap = await get(teamRef);
 
   if (!snap.exists()) {
-    await setDoc(teamRef, {
+    await set(teamRef, {
       teamId: tid,
-      memberUids: [user.uid],
+      teamNumber: tid,
+      teamName: `Team ${tid}`,
+      role: "team",
+      memberUids: { [user.uid]: true },
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
     return true;
   }
 
-  await updateDoc(teamRef, {
-    memberUids: arrayUnion(user.uid),
+  await update(teamRef, {
+    [`memberUids/${user.uid}`]: true,
     updatedAt: serverTimestamp(),
   });
 
   return true;
 }
 
-/**
- * ✅ Throws if the project doesn't belong to this team.
- */
 export function assertProjectOwnership(projectData, teamId) {
   const tid = requireStr("teamId", teamId);
   const owner = toStr(projectData?.ownerteamid);
@@ -75,25 +71,24 @@ export function assertProjectOwnership(projectData, teamId) {
   if (!owner) throw new Error("Project is missing ownerteamid field.");
   if (owner !== tid)
     throw new Error("You don't have permission to view this project.");
-
   return true;
 }
 
 /* =========================
-   USERS -> TEAMID
+   USERS -> TEAMID  (RTDB)
    ========================= */
 export async function getTeamIdByUserUid(uid, options = {}) {
   const userUid = requireStr("uid", uid);
 
-  const userSnap = await getDoc(doc(db, "users", userUid));
-  if (!userSnap.exists())
-    throw new Error("User profile not found (users/{uid}).");
+  const userRef = ref(rtdb, `users/${userUid}`);
+  const snap = await get(userRef);
 
-  const teamId = toStr(userSnap.data()?.teamId);
+  if (!snap.exists()) throw new Error("User profile not found (users/{uid}).");
+
+  const teamId = toStr(snap.val()?.teamId);
   if (!teamId) throw new Error("teamId missing in users/{uid}.");
 
   if (options.syncLocalStorage) localStorage.setItem("teamId", teamId);
-
   return teamId;
 }
 
@@ -104,10 +99,11 @@ export async function getProjectById(projectId) {
   const pid = toStr(projectId);
   if (!pid) return null;
 
-  const snap = await getDoc(doc(db, "projects", pid));
-  if (!snap.exists()) return null;
+  const pRef = ref(rtdb, `projects/${pid}`);
+  const snap = await get(pRef);
 
-  return { id: snap.id, ...snap.data() };
+  if (!snap.exists()) return null;
+  return { id: pid, ...snap.val() };
 }
 
 export async function getTeamProjectByOwnerTeamId(teamId) {
@@ -115,25 +111,27 @@ export async function getTeamProjectByOwnerTeamId(teamId) {
   if (!tid) return null;
 
   const q = query(
-    collection(db, "projects"),
-    where("ownerteamid", "==", tid),
-    limit(1)
+    ref(rtdb, "projects"),
+    orderByChild("ownerteamid"),
+    equalTo(tid),
+    limitToFirst(1)
   );
 
-  const snap = await getDocs(q);
-  if (snap.empty) return null;
+  const snap = await get(q);
+  if (!snap.exists()) return null;
 
-  const d = snap.docs[0];
-  return { id: d.id, ...d.data() };
+  const obj = snap.val();
+  const firstKey = Object.keys(obj)[0];
+  if (!firstKey) return null;
+
+  return { id: firstKey, ...obj[firstKey] };
 }
 
 export async function createProjectForTeam(data, options = {}) {
   const { preventDuplicate = true, syncLocalStorage = true } = options;
 
   const teamId = requireStr("teamId", data?.teamId);
-
-  // ✅ ensure teams/{teamId} exists + includes me (for Firestore rules)
-  await ensureTeamDoc(teamId);
+  await ensureTeamNode(teamId);
 
   if (preventDuplicate) {
     const existing = await getTeamProjectByOwnerTeamId(teamId);
@@ -158,7 +156,6 @@ export async function createProjectForTeam(data, options = {}) {
     progress: Number(data?.progress ?? 0) || 0,
     status: toStr(data?.status) || "On track",
 
-    // ✅ Architecture defaults
     architectureConfig: {},
     architectureUpdatedAt: null,
 
@@ -166,87 +163,16 @@ export async function createProjectForTeam(data, options = {}) {
     updatedAt: serverTimestamp(),
   };
 
-  const ref = await addDoc(collection(db, "projects"), payload);
+  const newRef = push(ref(rtdb, "projects"));
+  await set(newRef, payload);
 
-  const created = { id: ref.id, ...payload };
+  const created = { id: newRef.key, ...payload };
   if (syncLocalStorage) localStorage.setItem("projectId", created.id);
-
   return created;
 }
 
-/**
- * ✅ create project for Setup page
- */
-export async function createProjectFromSetup(form) {
-  const user = getCurrentUserOrThrow();
-
-  const teamId = await getTeamIdByUserUid(user.uid, { syncLocalStorage: true });
-
-  const projectName = requireStr("projectName", form?.projectName);
-  const teamLeader = requireStr("teamLeader", form?.teamLeader);
-
-  const created = await createProjectForTeam(
-    {
-      teamId,
-      projectName: toStr(projectName),
-      category: toStr(form?.category),
-      description: toStr(form?.description),
-      teamLeader: toStr(teamLeader),
-      status: "On track",
-      progress: 0,
-    },
-    { preventDuplicate: true, syncLocalStorage: true }
-  );
-
-  return { projectId: created.id, teamId };
-}
-
 /* =========================
-   ✅ ARCHITECTURE CONFIG
-   ========================= */
-export async function saveProjectArchitectureConfig(projectId, config) {
-  const pid = requireStr("projectId", projectId);
-  if (!config || typeof config !== "object")
-    throw new Error("Invalid architecture config.");
-
-  const ref = doc(db, "projects", pid);
-
-  await updateDoc(ref, {
-    architectureConfig: config,
-    architectureUpdatedAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  });
-
-  return true;
-}
-
-export async function getProjectArchitectureConfig(projectId) {
-  const p = await getProjectById(projectId);
-  return p?.architectureConfig || null;
-}
-
-/* =========================
-   PROJECT DOCUMENTS (Firestore)
-   ========================= */
-export async function getProjectDocuments(projectId, options = {}) {
-  const pid = toStr(projectId);
-  if (!pid) return [];
-
-  const { orderByField = "createdAt", orderDir = "desc", max = null } = options;
-
-  const colRef = collection(db, "projects", pid, "documents");
-
-  const parts = [orderBy(orderByField, orderDir)];
-  if (typeof max === "number" && max > 0) parts.push(limit(max));
-
-  const q = query(colRef, ...parts);
-
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-}
-
-/* =========================
-   ✅ SETUP SUBSCRIPTION
+   ✅ SETUP: subscribe + create
    ========================= */
 export function subscribeTeamProjectSetup({ onState } = {}) {
   const emit = (patch) => {
@@ -281,8 +207,124 @@ export function subscribeTeamProjectSetup({ onState } = {}) {
   return unsub;
 }
 
+export async function createProjectFromSetup(form) {
+  const user = getCurrentUserOrThrow();
+  const teamId = await getTeamIdByUserUid(user.uid, { syncLocalStorage: true });
+
+  const projectName = requireStr("projectName", form?.projectName);
+  const teamLeader = requireStr("teamLeader", form?.teamLeader);
+
+  const created = await createProjectForTeam(
+    {
+      teamId,
+      projectName: toStr(projectName),
+      category: toStr(form?.category),
+      description: toStr(form?.description),
+      teamLeader: toStr(teamLeader),
+      status: "On track",
+      progress: 0,
+    },
+    { preventDuplicate: true, syncLocalStorage: true }
+  );
+
+  return { projectId: created.id, teamId };
+}
+
 /* =========================
-   ✅ WORKSPACE SUBSCRIPTION
+   ARCHITECTURE CONFIG
+   ========================= */
+export async function saveProjectArchitectureConfig(projectId, config) {
+  const pid = requireStr("projectId", projectId);
+  if (!config || typeof config !== "object")
+    throw new Error("Invalid architecture config.");
+
+  const pRef = ref(rtdb, `projects/${pid}`);
+  await update(pRef, {
+    architectureConfig: config,
+    architectureUpdatedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+
+  return true;
+}
+
+export async function getProjectArchitectureConfig(projectId) {
+  const p = await getProjectById(projectId);
+  return p?.architectureConfig || null;
+}
+
+/* =========================
+   ✅ NOTES (User side)
+   /projects/{projectId}/notes/{noteId}
+   readByTeams/{teamId} = true
+   ========================= */
+export function subscribeProjectNotes(projectId, teamId, { onState } = {}) {
+  const emit = (patch) => {
+    if (typeof onState === "function") onState(patch);
+  };
+
+  const pid = requireStr("projectId", projectId);
+  const tid = requireStr("teamId", teamId);
+
+  const notesRef = ref(rtdb, `projects/${pid}/notes`);
+
+  const unsub = onValue(
+    notesRef,
+    (snap) => {
+      if (!snap.exists()) {
+        emit({ notes: [], unreadCount: 0 });
+        return;
+      }
+
+      const obj = snap.val() || {};
+      const notesArr = Object.entries(obj).map(([id, v]) => ({
+        id,
+        ...(v || {}),
+      }));
+
+      notesArr.sort(
+        (a, b) => Number(b?.createdAt || 0) - Number(a?.createdAt || 0)
+      );
+
+      const unreadCount = notesArr.filter(
+        (n) => n?.readByTeams?.[tid] !== true
+      ).length;
+
+      emit({ notes: notesArr, unreadCount });
+    },
+    (err) => {
+      console.error("NOTES SUBSCRIBE ERROR:", err);
+      emit({ error: String(err?.message || "Failed to load notes.") });
+    }
+  );
+
+  return unsub;
+}
+
+export async function markAllProjectNotesRead(projectId, teamId) {
+  const pid = requireStr("projectId", projectId);
+  const tid = requireStr("teamId", teamId);
+
+  const notesRef = ref(rtdb, `projects/${pid}/notes`);
+  const snap = await get(notesRef);
+  if (!snap.exists()) return true;
+
+  const obj = snap.val() || {};
+  const updates = {};
+
+  Object.keys(obj).forEach((noteId) => {
+    updates[`projects/${pid}/notes/${noteId}/readByTeams/${tid}`] = true;
+  });
+
+  if (Object.keys(updates).length > 0) {
+    await update(ref(rtdb), updates);
+  }
+
+  return true;
+}
+
+/* =========================
+   WORKSPACE SUBSCRIPTION
    ========================= */
 export function subscribeTeamProjectWorkspace(projectId, { onState } = {}) {
   const emit = (patch) => {
@@ -291,7 +333,7 @@ export function subscribeTeamProjectWorkspace(projectId, { onState } = {}) {
 
   emit({ loading: true, error: "", project: null, documents: [] });
 
-  const unsub = onAuthStateChanged(auth, async (user) => {
+  const unsubAuth = onAuthStateChanged(auth, async (user) => {
     emit({ loading: true, error: "", project: null, documents: [] });
 
     try {
@@ -322,8 +364,8 @@ export function subscribeTeamProjectWorkspace(projectId, { onState } = {}) {
         return;
       }
 
-      const projectData = await getProjectById(projectId);
-      if (!projectData) {
+      const p = await getProjectById(projectId);
+      if (!p) {
         emit({
           loading: false,
           error: "Project not found.",
@@ -333,15 +375,14 @@ export function subscribeTeamProjectWorkspace(projectId, { onState } = {}) {
         return;
       }
 
-      assertProjectOwnership(projectData, teamId);
+      assertProjectOwnership(p, teamId);
 
-      const docs = await getProjectDocuments(projectId);
-
+      // ✅ documents load moved to documentService (project docs)
       emit({
         loading: false,
         error: "",
-        project: projectData,
-        documents: Array.isArray(docs) ? docs : [],
+        project: p,
+        documents: [],
       });
     } catch (err) {
       console.error("WORKSPACE LOAD ERROR:", err);
@@ -354,71 +395,57 @@ export function subscribeTeamProjectWorkspace(projectId, { onState } = {}) {
     }
   });
 
-  return unsub;
+  return () => {
+    if (typeof unsubAuth === "function") unsubAuth();
+  };
 }
 
-/* =========================
-   ✅ PROJECT PAGE SUBSCRIPTION (TeamProjectPage.jsx)
-   ========================= */
-export function subscribeTeamProjectPage(projectId, { onState } = {}) {
-  const emit = (patch) => {
-    if (typeof onState === "function") onState(patch);
-  };
+export async function updateProjectProgress(projectId, progress) {
+  const pid = String(projectId || "").trim();
+  if (!pid) throw new Error("Missing projectId.");
 
-  emit({ loading: true, error: "", project: null });
+  const p = Number(progress ?? 0);
+  const safe = Number.isFinite(p) ? Math.max(0, Math.min(100, p)) : 0;
 
-  const unsub = onAuthStateChanged(auth, async (user) => {
-    emit({ loading: true, error: "", project: null });
-
-    try {
-      if (!user) {
-        emit({ loading: false, redirectTo: "/login" });
-        return;
-      }
-
-      let teamId = toStr(localStorage.getItem("teamId"));
-      if (!teamId) {
-        teamId = await getTeamIdByUserUid(user.uid, { syncLocalStorage: true });
-      }
-
-      const pid = toStr(projectId);
-      if (!pid) {
-        emit({ loading: false, error: "Missing project id.", project: null });
-        return;
-      }
-
-      const p = await getProjectById(pid);
-      if (!p) {
-        localStorage.removeItem("projectId");
-        emit({ loading: false, redirectTo: "/project" });
-        return;
-      }
-
-      assertProjectOwnership(p, teamId);
-
-      emit({ loading: false, error: "", project: p });
-    } catch (err) {
-      console.error("TEAM PROJECT PAGE SUBSCRIBE ERROR:", err);
-      emit({
-        loading: false,
-        error: String(err?.message || "Failed to load project data."),
-        project: null,
-      });
-    }
+  await update(ref(rtdb, `projects/${pid}`), {
+    progress: safe,
+    updatedAt: Date.now(),
   });
 
-  return unsub;
+  return safe;
+}
+
+export function getStatusFromProgress(progress) {
+  const p = Number(progress ?? 0);
+
+  if (p < 30) return "At risk";
+  if (p < 70) return "Minor issues";
+  return "On track";
 }
 
 /* =========================
-Fetch all projects
+Fetch all projects - Fix here!!!!
 ========================= */
+// export async function fetchProjectsMap() {
+//   const snapshot = await getDocs(collection(db, "projects"));
+//   const projectsMap = {};
+
+//   snapshot.forEach((doc) => {
+//     projectsMap[doc.id] = doc.data().projectName;
+//   });
+
+//   return projectsMap;
+// }
 export async function fetchProjectsMap() {
-  const snapshot = await getDocs(collection(db, "projects"));
+  const snapshot = await get(ref(rtdb, "projects"));
+
+  if (!snapshot.exists()) return {};
+
+  const data = snapshot.val();
   const projectsMap = {};
 
-  snapshot.forEach((doc) => {
-    projectsMap[doc.id] = doc.data().projectName;
+  Object.keys(data).forEach((projectId) => {
+    projectsMap[projectId] = data[projectId].projectName;
   });
 
   return projectsMap;

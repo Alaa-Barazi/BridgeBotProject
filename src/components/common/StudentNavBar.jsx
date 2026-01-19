@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import ActionButton from "./ActionButton";
 import ThemeToggle from "./ThemeToggle";
 import MobileNavMenu from "./MobileNavMenu";
+import { logout } from "../../services/authService";
 
 export default function StudentNavBar() {
   const currentProjectId = "p-101"; // Placeholder
@@ -16,10 +17,17 @@ export default function StudentNavBar() {
     { label: "Quiz", path: "/quiz" },
     { label: "Forum", path: "/forum" },
     { label: "Architecture", path: "/architecture" },
-    { label: "Learning Diary", path: "/diary" },
-    { label: "ChatBot", path: "/chatbot" },
   ];
-
+  const onLogout = async () => {
+    try {
+      console.log("Logging out...");
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("LOGOUT ERROR:", error);
+      alert("Logout failed. Please try again.");
+    }
+  };
   // ✅ Auto-close mobile menu on resize
   useEffect(() => {
     const handleResize = () => {
@@ -69,7 +77,7 @@ export default function StudentNavBar() {
         />
         <ActionButton
           buttonStyle="text-gray-600 dark:text-slate-300 hover:text-red-600"
-          onClick={() => {}}
+          onClick={() => onLogout()}
           text="Logout"
         />
       </div>

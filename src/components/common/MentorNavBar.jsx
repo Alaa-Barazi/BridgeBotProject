@@ -15,7 +15,16 @@ export default function MentorNavBar() {
     { label: "Dictionary", path: "/mentor/dictionary" },
     { label: "Forum", path: "/mentor/forum" },
   ];
-
+  const onLogout = async () => {
+    try {
+      console.log("Logging out...");
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("LOGOUT ERROR:", error);
+      alert("Logout failed. Please try again.");
+    }
+  };
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 768) {
@@ -64,7 +73,7 @@ export default function MentorNavBar() {
         />
         <ActionButton
           buttonStyle="text-gray-600 dark:text-slate-300 hover:text-red-600"
-          onClick={() => {}}
+          onClick={() => onLogout()}
           text="Logout"
         />
       </div>
@@ -84,7 +93,6 @@ export default function MentorNavBar() {
         items={navBarItems}
         onClose={() => setOpenMenu(false)}
         onProfile={() => navigate("/profile")}
-       
       />
     </nav>
   );

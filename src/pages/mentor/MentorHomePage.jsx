@@ -14,11 +14,3 @@ export default function MentorHomePage() {
   );
 }
 
-// export default function MentorHomePage() {
-//   return (
-//     <div style={{ padding: 24 }}>
-//       <h1>Mentor Home Page Works ✅</h1>
-//       <p>If you see this, the route is correct.</p>
-//     </div>
-//   );
-// }

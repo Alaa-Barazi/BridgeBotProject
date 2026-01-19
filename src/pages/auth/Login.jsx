@@ -18,12 +18,11 @@ export default function Login() {
 
     try {
       const res = await loginWithEmail(email, password);
-
       if (res.role === "mentor") {
         navigate("/mentor/dashboard");
       } else {
         localStorage.setItem("teamId", res.teamId);
-        localStorage.setItem("userId", res.uid);
+        localStorage.setItem("userId", res?.user.uid);
         navigate("/profile");
       }
     } catch (error) {

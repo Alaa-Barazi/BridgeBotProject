@@ -1,4 +1,3 @@
-// src/pages/team/TeamProjectPage.jsx
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -19,7 +18,6 @@ export default function TeamProjectPage() {
   useEffect(() => {
     const unsub = subscribeTeamProjectPage(projectId, {
       onState: (state) => {
-        // state: { loading, error, project, redirectTo }
         if (state.redirectTo) {
           navigate(state.redirectTo, { replace: true });
           return;

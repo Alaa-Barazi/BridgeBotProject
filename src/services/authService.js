@@ -1,5 +1,5 @@
 // src/services/authService.js
-import { auth, db } from "../firebase";
+import { auth, rtdb } from "../firebase";
 
 import {
   signInWithEmailAndPassword,
@@ -11,15 +11,13 @@ import {
 } from "firebase/auth";
 
 import {
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
+  ref,
+  get,
+  set,
+  update,
   serverTimestamp,
-  arrayUnion,
-  getDocs,
-  collection,
-} from "firebase/firestore";
+  runTransaction,
+} from "firebase/database";
 
 import {
   normalizeEmail,
@@ -32,36 +30,109 @@ import {
 /* =========================
    Helpers
    ========================= */
-function formatJoinedOn(ts) {
+function formatDateFromMillis(ms) {
   try {
-    if (!ts) return "";
-    if (typeof ts.toDate === "function") {
-      return ts.toDate().toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    }
-    if (ts instanceof Date) {
-      return ts.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    }
-    const d = new Date(ts);
-    if (!isNaN(d.getTime())) {
-      return d.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    }
-    return "";
+    if (!ms) return "";
+    const d = new Date(Number(ms));
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   } catch {
     return "";
   }
 }
+
+/* =========================
+   MENTOR CONFIG (BY EMAIL)
+   ========================= */
+const MENTOR_EMAILS = new Set([
+  "mentor@e.braude.ac.il", // ✅ תוסיפי פה עוד מיילים אם צריך
+]);
+
+function isMentorEmail(email) {
+  const e = String(email || "")
+    .trim()
+    .toLowerCase();
+  return MENTOR_EMAILS.has(e);
+}
+async function ensureMentorProfile(user) {
+  const uid = user?.uid;
+  const email = String(user?.email || "")
+    .trim()
+    .toLowerCase();
+  if (!uid) throw new Error("Missing uid.");
+
+  if (!isMentorEmail(email)) return false;
+
+  const mentorRef = ref(rtdb, `mentors/${uid}`);
+  const mentorSnap = await get(mentorRef);
+
+  if (!mentorSnap.exists()) {
+    await set(mentorRef, {
+      uid,
+      email,
+      name: user?.displayName || "BridgeBot mentor",
+      role: "mentor",
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+  } else {
+    await update(mentorRef, { updatedAt: serverTimestamp() });
+  }
+
+  return true;
+}
+
+// async function ensureMentorProfile(user) {
+//   const uid = user?.uid;
+//   const email = String(user?.email || "")
+//     .trim()
+//     .toLowerCase();
+//   if (!uid) throw new Error("Missing uid.");
+
+//   // not mentor -> do nothing
+//   if (!isMentorEmail(email)) return false;
+
+//   // create mentors/{uid} if missing
+//   const mentorRef = ref(rtdb, `mentors/${uid}`);
+//   const mentorSnap = await get(mentorRef);
+
+//   if (!mentorSnap.exists()) {
+//     await set(mentorRef, {
+//       uid,
+//       email,
+//       name: user?.displayName || "BridgeBot mentor",
+//       role: "mentor",
+//       createdAt: serverTimestamp(),
+//       updatedAt: serverTimestamp(),
+//     });
+//   } else {
+//     // touch updatedAt
+//     await update(mentorRef, { updatedAt: serverTimestamp() });
+//   }
+
+//   // OPTIONAL: create users/{uid} too (role=mentor) so UI won't complain about missing profile
+//   const userRef = ref(rtdb, `users/${uid}`);
+//   const userSnap = await get(userRef);
+
+//   if (!userSnap.exists()) {
+//     await set(userRef, {
+//       uid,
+//       email,
+//       userName: user?.displayName || "BridgeBot mentor",
+//       role: "mentor",
+//       createdAt: serverTimestamp(),
+//       updatedAt: serverTimestamp(),
+//     });
+//   } else {
+//     await update(userRef, { role: "mentor", updatedAt: serverTimestamp() });
+//   }
+
+//   return true;
+// }
 
 /* =========================
    LOGIN (basic)
@@ -81,32 +152,32 @@ export async function loginWithEmail(email, password) {
   const user = await loginUser(email, password);
   const uid = user.uid;
 
-  // Mentor?
-  try {
-    const mentorSnap = await getDoc(doc(db, "mentors", uid));
-    if (mentorSnap.exists()) {
-      localStorage.removeItem("teamId");
-      return { user, role: "mentor", teamId: null };
-    }
-  } catch (err) {
-    console.warn("MENTOR CHECK WARNING:", err?.code, err?.message);
+  // ✅ Mentor path (NO teamId)
+  const mentorOk = await ensureMentorProfile(user);
+  if (mentorOk) {
+    localStorage.removeItem("teamId");
+    return { user, role: "mentor", teamId: null };
   }
 
   // Student -> users/{uid}
-  const userSnap = await getDoc(doc(db, "users", uid));
+  const userSnap = await get(ref(rtdb, `users/${uid}`));
   if (!userSnap.exists()) {
-    throw new Error("User profile missing in Firestore (users/{uid}).");
+    throw new Error("User profile missing in RTDB (users/{uid}).");
   }
 
-  const teamId = String(userSnap.data().teamId || "").trim();
+  const userData = userSnap.val();
+  const teamId = String(userData?.teamId || "").trim();
   if (!teamId) throw new Error("teamId missing in users/{uid}.");
 
   localStorage.setItem("teamId", teamId);
-  return { user, role: "student", teamId, uid };
+  return { user, role: "student", teamId };
 }
 
 /* =========================
    REGISTER
+   - writes to:
+     teams/{teamNumber}
+     users/{uid}
    ========================= */
 export async function registerUser(formData) {
   const email = normalizeEmail(formData.email);
@@ -116,6 +187,8 @@ export async function registerUser(formData) {
   assertPasswordsMatch(formData.password, formData.confirmPassword);
 
   const teamNumber = assertValidTeamNumber(formData.teamNumber);
+  const userName = String(formData.userName || "").trim();
+  if (!userName) throw new Error("User name is required.");
 
   let createdUser = null;
 
@@ -125,37 +198,39 @@ export async function registerUser(formData) {
       email,
       formData.password
     );
-
     createdUser = cred.user;
     const uid = createdUser.uid;
 
-    await updateProfile(createdUser, {
-      displayName: String(formData.userName || "").trim(),
+    await updateProfile(createdUser, { displayName: userName });
+
+    // 1) Ensure team exists + add memberUids/{uid} = true
+    const teamPath = `teams/${teamNumber}`;
+
+    await runTransaction(ref(rtdb, teamPath), (current) => {
+      if (current == null) {
+        return {
+          teamId: teamNumber,
+          teamNumber,
+          teamName: `Team ${teamNumber}`,
+          role: "team",
+          memberUids: { [uid]: true }, // ✅ MAP
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        };
+      }
+
+      const next = { ...current };
+      if (!next.memberUids || typeof next.memberUids !== "object")
+        next.memberUids = {};
+      next.memberUids[uid] = true;
+      next.updatedAt = serverTimestamp();
+      return next;
     });
 
-    const teamRef = doc(db, "teams", teamNumber);
-    const teamSnap = await getDoc(teamRef);
-
-    if (!teamSnap.exists()) {
-      await setDoc(teamRef, {
-        teamId: teamNumber,
-        teamNumber,
-        teamName: `Team ${teamNumber}`,
-        role: "team",
-        memberUids: [uid],
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
-    } else {
-      await updateDoc(teamRef, {
-        memberUids: arrayUnion(uid),
-        updatedAt: serverTimestamp(),
-      });
-    }
-
-    await setDoc(doc(db, "users", uid), {
+    // 2) Create users/{uid}
+    await set(ref(rtdb, `users/${uid}`), {
       uid,
-      userName: String(formData.userName || "").trim(),
+      userName,
       email,
       teamId: teamNumber,
       teamNumber,
@@ -188,35 +263,31 @@ export async function sendResetPasswordLink(email) {
 }
 
 /* =========================
-   LOAD STUDENT PROFILE (ready for UI)
+   LOAD STUDENT PROFILE
    ========================= */
 export async function loadStudentProfile(uid) {
-  const userSnap = await getDoc(doc(db, "users", uid));
+  if (!uid) throw new Error("Missing uid.");
+
+  const userSnap = await get(ref(rtdb, `users/${uid}`));
   if (!userSnap.exists())
     throw new Error("User profile not found (users/{uid}).");
 
-  const userData = userSnap.data();
-  const teamId = String(userData.teamId || "").trim();
+  const userData = userSnap.val();
+  const teamId = String(userData?.teamId || "").trim();
   if (!teamId) throw new Error("teamId missing in users/{uid}.");
 
-  const teamSnap = await getDoc(doc(db, "teams", teamId));
+  const teamSnap = await get(ref(rtdb, `teams/${teamId}`));
   if (!teamSnap.exists()) throw new Error("Team not found (teams/{teamId}).");
 
-  const teamData = teamSnap.data();
-
-  const joinedOn =
-    teamData.createdAt?.toDate?.().toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    }) || "";
+  const teamData = teamSnap.val();
+  const joinedOn = formatDateFromMillis(teamData?.createdAt);
 
   return {
     teamId,
     teamInfo: {
-      teamName: teamData.teamName || `Team ${teamId}`,
-      teamNumber: teamData.teamNumber || teamId,
-      email: userData.email || "",
+      teamName: teamData?.teamName || `Team ${teamId}`,
+      teamNumber: teamData?.teamNumber || teamId,
+      email: userData?.email || "",
       joinedOn,
     },
     user: userData,
@@ -234,7 +305,7 @@ export async function updateTeamName(teamId, teamName) {
   if (!tid) throw new Error("Missing teamId.");
   if (!name) throw new Error("Team name is required.");
 
-  await updateDoc(doc(db, "teams", tid), {
+  await update(ref(rtdb, `teams/${tid}`), {
     teamName: name,
     updatedAt: serverTimestamp(),
   });
@@ -252,15 +323,19 @@ export async function logout() {
 }
 
 /* =========================
-  Fetch aAll Users
+  Fetch All Users 
   ========================= */
 //Fetch user and projects
 export async function fetchUsersMap() {
-  const snapshot = await getDocs(collection(db, "users"));
+  const snapshot = await get(ref(rtdb, "users"));
+
+  if (!snapshot.exists()) return {};
+
+  const data = snapshot.val();
   const usersMap = {};
 
-  snapshot.forEach((doc) => {
-    usersMap[doc.id] = doc.data().userName;
+  Object.keys(data).forEach((userId) => {
+    usersMap[userId] = data[userId].userName;
   });
 
   return usersMap;

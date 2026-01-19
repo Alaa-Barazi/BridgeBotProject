@@ -1,24 +1,23 @@
-// src/services/forumService.js
-import { db, auth } from "../firebase";
+// src/services/forumService.js (RTDB - answers inside questions)
 
+import { rtdb, auth } from "../firebase";
 import {
-  collection,
-  addDoc,
-  doc,
-  getDoc,
-  query,
-  orderBy,
+  ref,
+  get,
+  set,
+  update,
+  push,
   serverTimestamp,
-  onSnapshot,
-  limit,
-  updateDoc,
-  increment,
-  arrayUnion,
-  Timestamp,
-} from "firebase/firestore";
+  onValue,
+  query,
+  orderByChild,
+  limitToLast,
+  runTransaction,
+} from "firebase/database";
 
-const QUESTIONS_COL = "questions";
-
+/* =========================
+   Helpers
+   ========================= */
 const toStr = (v) => String(v ?? "").trim();
 
 function requireStr(name, value) {
@@ -44,39 +43,37 @@ export async function createQuestion({ title, body }) {
     title: requireStr("title", title),
     body: requireStr("body", body),
 
-    // ✅ "user" fields
     userUid: user.uid,
     userName: toStr(user.displayName) || toStr(user.email) || "User",
 
-    // ✅ store answers INSIDE the question doc
-    answers: [],
     answersCount: 0,
-
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   };
 
-  const ref = await addDoc(collection(db, QUESTIONS_COL), payload);
-  return { id: ref.id, ...payload };
-}
+  const newRef = push(ref(rtdb, "questions"));
+  await set(newRef, payload);
 
-export async function getQuestionById(questionId) {
-  const qid = requireStr("questionId", questionId);
-
-  const snap = await getDoc(doc(db, QUESTIONS_COL, qid));
-  if (!snap.exists()) return null;
-
-  return { id: snap.id, ...snap.data() };
+  return { id: newRef.key, ...payload };
 }
 
 export function subscribeQuestions({ onData, onError, max = 50 } = {}) {
-  const qRef = collection(db, QUESTIONS_COL);
-  const qy = query(qRef, orderBy("createdAt", "desc"), limit(max));
+  const qy = query(
+    ref(rtdb, "questions"),
+    orderByChild("createdAt"),
+    limitToLast(max)
+  );
 
-  const unsub = onSnapshot(
+  const unsub = onValue(
     qy,
     (snap) => {
-      const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const obj = snap.val() || {};
+      const rows = Object.entries(obj).map(([id, data]) => ({
+        id,
+        ...(data || {}),
+      }));
+
+      rows.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       if (typeof onData === "function") onData(rows);
     },
     (err) => {
@@ -88,28 +85,78 @@ export function subscribeQuestions({ onData, onError, max = 50 } = {}) {
 }
 
 /* =========================
-   ANSWERS (INSIDE QUESTION FIELD)
-   stored in: questions/{questionId}.answers[]
+   ANSWERS INSIDE QUESTION
+   /questions/{qid}/answers/{aid}
    ========================= */
 
+export function subscribeAnswers(questionId, { onData, onError } = {}) {
+  const qid = requireStr("questionId", questionId);
+
+  const aRef = ref(rtdb, `questions/${qid}/answers`);
+
+  const unsub = onValue(
+    aRef,
+    (snap) => {
+      const obj = snap.val() || {};
+      const rows = Object.entries(obj).map(([id, data]) => ({
+        id,
+        ...(data || {}),
+      }));
+
+      rows.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+      if (typeof onData === "function") onData(rows);
+    },
+    (err) => {
+      if (typeof onError === "function") onError(err);
+    }
+  );
+
+  return unsub;
+}
 export async function addAnswer(questionId, { body }) {
   const user = getUserOrThrow();
   const qid = requireStr("questionId", questionId);
 
+  const isMentor =
+    String(user?.email || "").toLowerCase() === "mentor@e.braude.ac.il";
+
+  // ✅ load mentor name from /mentors (NOT /users)
+  let mentorName = "";
+  try {
+    if (isMentor) {
+      const snap = await get(ref(rtdb, `mentors/${user.uid}/displayName`));
+      mentorName = snap.exists() ? String(snap.val() || "").trim() : "";
+    }
+  } catch (e) {
+    console.warn("Failed to load mentor name:", e);
+  }
+
+  // ✅ normal users: displayName -> email -> "User"
+  const userDisplay = toStr(user.displayName) || toStr(user.email) || "User";
+
   const answerObj = {
     body: requireStr("body", body),
     userUid: user.uid,
-    userName: toStr(user.displayName) || toStr(user.email) || "User",
-    // ✅ Use Timestamp.now() inside array objects (better than serverTimestamp here)
-    createdAt: Timestamp.now(),
+
+    // ✅ mentor: DB name -> auth displayName -> constant label
+    userName: isMentor
+      ? mentorName || toStr(user.displayName) || "BridgeBot Mentor"
+      : userDisplay,
+
+    role: isMentor ? "mentor" : "user",
+    createdAt: serverTimestamp(),
   };
 
-  // ✅ push new answer into answers[] field
-  await updateDoc(doc(db, QUESTIONS_COL, qid), {
-    answers: arrayUnion(answerObj),
-    answersCount: increment(1),
+  const aRef = push(ref(rtdb, `questions/${qid}/answers`));
+  await set(aRef, answerObj);
+
+  await runTransaction(ref(rtdb, `questions/${qid}/answersCount`), (n) => {
+    return Number(n || 0) + 1;
+  });
+
+  await update(ref(rtdb, `questions/${qid}`), {
     updatedAt: serverTimestamp(),
   });
 
-  return answerObj;
+  return { id: aRef.key, ...answerObj };
 }

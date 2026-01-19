@@ -1,16 +1,12 @@
-import {
-  collection,
-  addDoc,
-  serverTimestamp,
-  query,
-  orderBy,
-  getDocs,
-} from "firebase/firestore";
+import { ref, push, get, child, serverTimestamp } from "firebase/database";
+import { rtdb } from "../firebase";
 import { fetchUsersMap } from "./authService";
 import { fetchProjectsMap } from "./projectsService";
-import { db } from "../firebase";
 import * as XLSX from "xlsx";
 
+/* =========================
+   Save BridgeBot QA
+========================= */
 export async function saveBridgeBotQA({
   studentId,
   projectId,
@@ -21,7 +17,9 @@ export async function saveBridgeBotQA({
     throw new Error("Missing required fields for BridgeBot QA save");
   }
 
-  await addDoc(collection(db, "bridgebot_qa"), {
+  const qaRef = ref(rtdb, "bridgebot_qa");
+
+  await push(qaRef, {
     studentId,
     projectId,
     question,
@@ -30,21 +28,30 @@ export async function saveBridgeBotQA({
   });
 }
 
-//Fetch all questions and answers
+/* =========================
+   Fetch all Q&A
+========================= */
 export async function fetchAllBridgeBotQA() {
-  const q = query(collection(db, "bridgebot_qa"), orderBy("studentId", "asc"));
+  const snapshot = await get(child(ref(rtdb), "bridgebot_qa"));
 
-  const snapshot = await getDocs(q);
+  if (!snapshot.exists()) return [];
 
-  return snapshot.docs.map((doc) => ({
-    studentId: doc.data().studentId,
-    projectId: doc.data().projectId,
-    question: doc.data().question,
-    answer: doc.data().answer,
-    timestamp: doc.data().timestamp?.toDate()?.toISOString() ?? "",
-  }));
+  const data = snapshot.val();
+
+  return Object.values(data)
+    .sort((a, b) => (a.studentId || "").localeCompare(b.studentId || ""))
+    .map((row) => ({
+      studentId: row.studentId,
+      projectId: row.projectId,
+      question: row.question,
+      answer: row.answer,
+      timestamp: row.timestamp ? new Date(row.timestamp).toISOString() : "",
+    }));
 }
-//Fetcha all questions and answers in readable format
+
+/* =========================
+   Fetch readable Q&A
+========================= */
 export async function fetchAllBridgeBotQAReadable() {
   const [qaRows, usersMap, projectsMap] = await Promise.all([
     fetchAllBridgeBotQA(),
@@ -61,11 +68,14 @@ export async function fetchAllBridgeBotQAReadable() {
   }));
 }
 
-//Fetch tha data into excel
+/* =========================
+   Export to Excel
+========================= */
 export function exportReadableBridgeBotQAtoExcel(rows) {
   const worksheet = XLSX.utils.json_to_sheet(rows);
   const workbook = XLSX.utils.book_new();
 
   XLSX.utils.book_append_sheet(workbook, worksheet, "BridgeBot Conversations");
+
   XLSX.writeFile(workbook, "bridgebot_readable_conversations.xlsx");
 }

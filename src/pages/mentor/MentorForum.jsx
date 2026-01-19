@@ -1,22 +1,33 @@
 // src/pages/mentor/MentorForum.jsx
 import { useEffect, useState } from "react";
-import { subscribeQuestions, addAnswer } from "../../services/forumService";
+import {
+  subscribeQuestions,
+  subscribeAnswers,
+  addAnswer,
+} from "../../services/forumService";
 
 const MentorForum = () => {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errMsg, setErrMsg] = useState("");
 
-  // replies UI
+  // which question is open
   const [openId, setOpenId] = useState(null);
+
+  // ✅ answers of the currently open question
+  const [answers, setAnswers] = useState([]);
+  const [answersLoading, setAnswersLoading] = useState(false);
+
+  // reply UI
   const [replyOpen, setReplyOpen] = useState({});
   const [replyText, setReplyText] = useState({});
   const [savingReply, setSavingReply] = useState({});
 
+  // load questions
   useEffect(() => {
     const unsub = subscribeQuestions({
       onData: (rows) => {
-        setQuestions(rows);
+        setQuestions(Array.isArray(rows) ? rows : []);
         setLoading(false);
       },
       onError: (err) => {
@@ -32,14 +43,36 @@ const MentorForum = () => {
     };
   }, []);
 
-  const sortedAnswers = (answers) => {
-    const arr = Array.isArray(answers) ? answers : [];
-    return [...arr].sort((a, b) => {
-      const at = a?.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-      const bt = b?.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
-      return at - bt;
+  // ✅ subscribe answers when openId changes
+  useEffect(() => {
+    if (!openId) {
+      setAnswers([]);
+      return;
+    }
+
+    setAnswersLoading(true);
+    const unsub = subscribeAnswers(openId, {
+      onData: (rows) => {
+        const arr = Array.isArray(rows) ? rows : [];
+        // RTDB timestamps are numbers (after serverTimestamp resolves)
+        arr.sort(
+          (a, b) => Number(a?.createdAt || 0) - Number(b?.createdAt || 0)
+        );
+        setAnswers(arr);
+        setAnswersLoading(false);
+      },
+      onError: (err) => {
+        console.error(err);
+        setErrMsg(err?.message || "Failed to load answers.");
+        setAnswers([]);
+        setAnswersLoading(false);
+      },
     });
-  };
+
+    return () => {
+      if (typeof unsub === "function") unsub();
+    };
+  }, [openId]);
 
   const handleSaveReply = async (qid) => {
     const text = String(replyText[qid] ?? "").trim();
@@ -49,9 +82,8 @@ const MentorForum = () => {
     try {
       setSavingReply((p) => ({ ...p, [qid]: true }));
       await addAnswer(qid, { body: text });
-      setReplyText((p) => ({ ...p, [qid]: "" }));
 
-      // close reply box after saving
+      setReplyText((p) => ({ ...p, [qid]: "" }));
       setReplyOpen((p) => ({ ...p, [qid]: false }));
     } catch (err) {
       console.error(err);
@@ -61,11 +93,33 @@ const MentorForum = () => {
     }
   };
 
+  // ✅ RTDB date helper
   const getDateText = (ts) => {
-    if (!ts) return "";
-    const ms = ts?.toMillis ? ts.toMillis() : null;
-    if (!ms) return "";
-    return new Date(ms).toLocaleString();
+    const n = Number(ts || 0);
+    if (!Number.isFinite(n) || n <= 0) return "";
+    try {
+      return new Date(n).toLocaleString();
+    } catch {
+      return "";
+    }
+  };
+
+  // ✅ decide how to show author name (mentor vs user)
+  const getAuthor = (a) => {
+    const role = String(a?.role || "").toLowerCase();
+    const isMentor =
+      role === "mentor" || a?.isMentor === true || a?.mentorUid != null;
+
+    if (isMentor) {
+      const mentorName =
+        String(a?.mentorName || "").trim() ||
+        String(a?.userName || "").trim() || // fallback if you stored mentor name in userName
+        "Mentor";
+      return { name: mentorName, isMentor: true };
+    }
+
+    const name = String(a?.userName || "").trim() || "User";
+    return { name, isMentor: false };
   };
 
   return (
@@ -82,7 +136,6 @@ const MentorForum = () => {
         </div>
       )}
 
-      {/* ✅ mentor view = فقط قائمة الأسئلة بعرض كامل */}
       <div>
         {loading && (
           <div className="text-gray-600 dark:text-gray-300">Loading...</div>
@@ -97,9 +150,16 @@ const MentorForum = () => {
         <div className="space-y-4">
           {questions.map((q) => {
             const isOpen = openId === q.id;
-            const answers = sortedAnswers(q.answers);
-            const count = Number(q.answersCount ?? answers.length ?? 0);
+
+            // ✅ count from DB field (fast), fallback to loaded answers only if open
+            const count = Number(
+              q.answersCount ?? (isOpen ? answers.length : 0) ?? 0
+            );
+
             const showReplyForm = !!replyOpen[q.id];
+
+            // ✅ show only answers of opened question
+            const visibleAnswers = isOpen ? answers : [];
 
             return (
               <div
@@ -117,12 +177,14 @@ const MentorForum = () => {
                       <span className="font-medium text-gray-700 dark:text-gray-200">
                         {q.userName || "User"}
                       </span>
+
                       {q.createdAt ? (
                         <>
                           <span className="mx-2">•</span>
                           <span>{getDateText(q.createdAt)}</span>
                         </>
                       ) : null}
+
                       <span className="mx-2">•</span>
                       <span>{count} replies</span>
                     </div>
@@ -132,7 +194,9 @@ const MentorForum = () => {
                     onClick={() => {
                       const nextOpen = isOpen ? null : q.id;
                       setOpenId(nextOpen);
+
                       if (nextOpen) {
+                        // close reply box when opening a question
                         setReplyOpen((p) => ({ ...p, [q.id]: false }));
                       }
                     }}
@@ -151,29 +215,47 @@ const MentorForum = () => {
                 {isOpen && (
                   <div className="mt-6 border-t border-gray-200 dark:border-gray-700 pt-5">
                     <div className="space-y-3">
-                      {answers.length === 0 ? (
+                      {answersLoading ? (
+                        <div className="text-sm text-gray-600 dark:text-gray-300">
+                          Loading replies...
+                        </div>
+                      ) : visibleAnswers.length === 0 ? (
                         <div className="text-sm text-gray-600 dark:text-gray-300">
                           No replies yet.
                         </div>
                       ) : (
-                        answers.map((a, idx) => (
-                          <div
-                            key={idx}
-                            className="border border-gray-200 dark:border-gray-700 rounded-xl p-4"
-                          >
-                            <div className="flex items-center justify-between gap-3">
-                              <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                                {a.userName || "User"}
+                        visibleAnswers.map((a) => {
+                          const author = getAuthor(a);
+
+                          return (
+                            <div
+                              key={a.id}
+                              className="border border-gray-200 dark:border-gray-700 rounded-xl p-4"
+                            >
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                                    {author.name}
+                                  </div>
+
+                                  {author.isMentor && (
+                                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200">
+                                      Mentor
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div className="text-xs text-gray-500">
+                                  {getDateText(a.createdAt)}
+                                </div>
                               </div>
-                              <div className="text-xs text-gray-500">
-                                {getDateText(a.createdAt)}
+
+                              <div className="mt-2 text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
+                                {a.body}
                               </div>
                             </div>
-                            <div className="mt-2 text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
-                              {a.body}
-                            </div>
-                          </div>
-                        ))
+                          );
+                        })
                       )}
                     </div>
 

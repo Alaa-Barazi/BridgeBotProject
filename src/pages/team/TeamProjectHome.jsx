@@ -1,4 +1,3 @@
-// src/pages/team/TeamProjectHome.jsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
@@ -9,8 +8,6 @@ import { getTeamProjectByOwnerTeamId } from "../../services/projectsService";
 
 import TeamProjectSetup from "./TeamProjectSetup";
 import TeamProjectWorkspace from "./TeamProjectWorkspace";
-// או Architecture אם זה מה שאת רוצה במקום setup
-// import Architecture from "./TeamProjectArchitecture";
 
 export default function TeamProjectHome() {
   const navigate = useNavigate();
@@ -32,9 +29,10 @@ export default function TeamProjectHome() {
           return;
         }
 
-        // 1) get teamId from users/{uid}
-        const prof = await loadStudentProfile(user.uid); // חשוב: uid
-        const tid = String(prof.teamId || "").trim();
+        // teamId from user profile (RTDB in authService)
+        const prof = await loadStudentProfile(user.uid);
+        const tid = String(prof?.teamId || "").trim();
+
         if (!tid) {
           setErrMsg("teamId missing in user profile.");
           setLoading(false);
@@ -44,7 +42,7 @@ export default function TeamProjectHome() {
         setTeamId(tid);
         localStorage.setItem("teamId", tid);
 
-        // 2) find project by ownerteamid
+        // find project by ownerteamid (RTDB)
         const proj = await getTeamProjectByOwnerTeamId(tid);
 
         if (!proj) {
@@ -56,8 +54,9 @@ export default function TeamProjectHome() {
 
         setHasProject(true);
         setProjectId(proj.id);
+        localStorage.setItem("projectId", proj.id);
 
-        // אופציונלי: לנתב לכתובת הרשמית
+        // navigate to canonical url
         navigate(`/project/${proj.id}`, { replace: true });
       } catch (e) {
         console.error("TeamProjectHome error:", e);
@@ -84,12 +83,9 @@ export default function TeamProjectHome() {
     );
   }
 
-  // אם אין פרויקט – תראי מסך הקמה
   if (!hasProject) {
-    // אפשר להחליף ל <Architecture />
     return <TeamProjectSetup teamId={teamId} />;
   }
 
-  // אם כן יש פרויקט – אפשר להציג workspace (אבל לרוב navigate כבר יקח לשם)
   return <TeamProjectWorkspace projectId={projectId} />;
 }

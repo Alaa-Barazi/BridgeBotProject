@@ -1,72 +1,31 @@
 // src/pages/team/TeamProjectWorkspace.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import ProjectHeader from "../../components/team/project/ProjectHeader";
 import ProjectTabs from "../../components/team/project/ProjectTabs";
 import ChatPanel from "../../components/chatBot/ChatPanel";
+import ProjectNotes from "../../components/team/project/ProjectNotes";
 
-import { subscribeTeamProjectWorkspace } from "../../services/projectsService";
+import ProjectProgressCard from "../../components/team/project/ProjectProgressCard";
+import DocumentsPanel from "../../components/team/project/DocumentsPanel";
+import ArchitectureSection from "../../components/team/project/ArchitectureSection";
+import EmptyProjectState from "../../components/team/project/EmptyProjectState";
 
-import sectionsData from "../../mock/sectionsData";
+import {
+  subscribeTeamProjectWorkspace,
+  getTeamIdByUserUid,
+  updateProjectProgress,
+  getStatusFromProgress,
+} from "../../services/projectsService";
 
-/* =========================
-   Architecture Summary UI
-   ========================= */
-function ArchitectureSummary({ architectureConfig }) {
-  const config =
-    architectureConfig && typeof architectureConfig === "object"
-      ? architectureConfig
-      : {};
+import {
+  uploadProjectDocumentBase64,
+  deleteProjectDocument,
+  subscribeProjectDocuments,
+} from "../../services/documentService";
 
-  const rows = sectionsData
-    .map((section) => {
-      const selected = Array.isArray(config[section.id])
-        ? config[section.id]
-        : [];
-      return { section, selected };
-    })
-    .filter((r) => r.selected.length > 0);
-
-  if (rows.length === 0) {
-    return (
-      <div className="mt-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 text-center">
-        <div className="font-semibold mb-1 text-gray-900 dark:text-white">
-          Architecture
-        </div>
-        <div className="text-sm text-gray-500">
-          No architecture selected yet
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mt-4 space-y-4">
-      {rows.map(({ section, selected }) => (
-        <div
-          key={section.id}
-          className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5"
-        >
-          <div className="font-semibold text-gray-900 dark:text-white">
-            {section.title}
-          </div>
-
-          <div className="mt-3 flex flex-wrap gap-2">
-            {selected.map((item) => (
-              <span
-                key={item}
-                className="px-3 py-1 rounded-full text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600"
-              >
-                {item}
-              </span>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
+import { subscribeProjectNotes } from "../../services/notesService";
 
 export default function TeamProjectWorkspace() {
   const { projectId } = useParams();
@@ -81,11 +40,24 @@ export default function TeamProjectWorkspace() {
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
 
+  const [teamId, setTeamId] = useState("");
+  const [notesUnread, setNotesUnread] = useState(0);
+
+  // ✅ PID - safest source order
+  const pid = useMemo(() => {
+    return (
+      String(projectId || "").trim() ||
+      String(project?.id || "").trim() ||
+      String(localStorage.getItem("projectId") || "").trim()
+    );
+  }, [projectId, project?.id]);
+
+  // ✅ load project workspace (project data)
   useEffect(() => {
     setLoading(true);
     setErrMsg("");
     setProject(null);
-    setDocuments([]);
+    setDocuments([]); // will be filled by subscribeProjectDocuments
     setSelectedFile(null);
 
     const unsub = subscribeTeamProjectWorkspace(projectId, {
@@ -98,32 +70,142 @@ export default function TeamProjectWorkspace() {
         if (typeof state.loading === "boolean") setLoading(state.loading);
         if (state.error !== undefined) setErrMsg(state.error || "");
         if (state.project !== undefined) setProject(state.project);
-        if (state.documents !== undefined) setDocuments(state.documents);
+        // ❌ do NOT rely on state.documents here (documents come from documentService subscription)
       },
     });
 
-    return () => {
-      if (typeof unsub === "function") unsub();
-    };
+    return () => typeof unsub === "function" && unsub();
   }, [projectId, navigate]);
 
-  // ✅ allow opening selection page for editing anytime
-  const goToArchitectureSelection = useMemo(() => {
-    const pid =
-      projectId || project?.id || localStorage.getItem("projectId") || "";
+  // ✅ subscribe project documents (so when project opens, docs show from RTDB)
+  useEffect(() => {
+    if (!pid) return;
+
+    const unsub = subscribeProjectDocuments(pid, {
+      onState: (state) => {
+        if (Array.isArray(state?.documents)) setDocuments(state.documents);
+        if (state?.error) setErrMsg(String(state.error || ""));
+      },
+    });
+
+    return () => typeof unsub === "function" && unsub();
+  }, [pid]);
+
+  // ✅ load teamId once (from localStorage or users/{uid})
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const ls = String(localStorage.getItem("teamId") || "").trim();
+        if (ls) {
+          if (!cancelled) setTeamId(ls);
+          return;
+        }
+
+        const { getAuth } = await import("firebase/auth");
+        const user = getAuth().currentUser;
+        if (!user) return;
+
+        const tid = await getTeamIdByUserUid(user.uid, {
+          syncLocalStorage: true,
+        });
+        if (!cancelled) setTeamId(tid);
+      } catch (e) {
+        console.error("TEAMID LOAD ERROR:", e);
+      }
+    })();
+
     return () => {
-      if (!pid) return;
-      navigate("/architecture", { state: { projectId: pid } });
+      cancelled = true;
     };
-  }, [navigate, projectId, project?.id]);
+  }, []);
 
-  const getDocTitle = (d) => d?.title || d?.name || d?.fileName || "Document";
-  const getDocUrl = (d) => d?.url || d?.downloadURL || d?.downloadUrl || "";
+  // ✅ subscribe to notes UNREAD always (badge)
+  useEffect(() => {
+    if (!pid || !teamId) return;
 
-  const progressValue = Number(project?.progress ?? 0);
-  const safeProgress = Number.isFinite(progressValue)
-    ? Math.max(0, Math.min(100, progressValue))
-    : 0;
+    const unsub = subscribeProjectNotes(pid, teamId, {
+      onState: (state) => {
+        if (typeof state.unreadCount === "number") {
+          setNotesUnread(Number(state.unreadCount || 0));
+        }
+      },
+    });
+
+    return () => typeof unsub === "function" && unsub();
+  }, [pid, teamId]);
+
+  // ✅ progress number (0..100)
+  const safeProgress = useMemo(() => {
+    const v = Number(project?.progress ?? 0);
+    return Number.isFinite(v) ? Math.max(0, Math.min(100, v)) : 0;
+  }, [project?.progress]);
+
+  // ✅ status derived from progress (On track / At risk / etc)
+  const statusFromProgress = useMemo(() => {
+    return getStatusFromProgress(safeProgress);
+  }, [safeProgress]);
+
+  const goToArchitectureSelection = useCallback(() => {
+    if (!pid) return;
+    navigate("/architecture", { state: { projectId: pid } });
+  }, [navigate, pid]);
+
+  const getDocTitle = useCallback(
+    (d) => d?.title || d?.name || d?.fileName || "Document",
+    []
+  );
+
+  // NOTE: for download we mainly use dataUrl, but keep this helper if you need
+  const getDocUrl = useCallback((d) => d?.dataUrl || d?.url || "", []);
+
+  // ✅ upload handler uses selectedFile ONLY
+  const handleUploadSelected = useCallback(async () => {
+    if (!pid) return alert("Missing project id.");
+    if (!selectedFile) return alert("Please choose a file first.");
+
+    setErrMsg("");
+    setUploading(true);
+
+    try {
+      // ✅ write to RTDB
+      await uploadProjectDocumentBase64(pid, selectedFile);
+
+      // ✅ clear selection
+      setSelectedFile(null);
+
+      // ✅ update progress (example: +10 per upload)
+      await updateProjectProgress(pid, Math.min(100, safeProgress + 10));
+      // ✅ UI docs list will update automatically because of subscribeProjectDocuments
+    } catch (e) {
+      console.error(e);
+      setErrMsg(String(e?.message || "Upload failed."));
+    } finally {
+      setUploading(false);
+    }
+  }, [pid, selectedFile, safeProgress]);
+
+  // ✅ delete doc (RTDB + UI refresh via subscription)
+  const handleDeleteDoc = useCallback(
+    async (docId) => {
+      if (!pid) return alert("Missing project id.");
+      if (!docId) return;
+
+      setErrMsg("");
+      try {
+        await deleteProjectDocument(pid, docId);
+        // optional immediate UI removal (subscription will also handle it)
+        setDocuments((prev) =>
+          Array.isArray(prev) ? prev.filter((d) => d?.id !== docId) : []
+        );
+      } catch (e) {
+        console.error(e);
+        setErrMsg(String(e?.message || "Delete failed."));
+      }
+    },
+    [pid]
+  );
 
   if (loading) return <div className="p-8">Loading...</div>;
 
@@ -134,9 +216,11 @@ export default function TeamProjectWorkspace() {
           <h3 className="font-semibold mb-2 text-gray-900 dark:text-white">
             Error
           </h3>
-          <p className="text-gray-700 dark:text-gray-200">{errMsg}</p>
+          <p className="text-gray-700 dark:text-gray-200">
+            {errMsg || "Project not found"}
+          </p>
 
-          {errMsg.toLowerCase().includes("logged") && (
+          {String(errMsg).toLowerCase().includes("logged") && (
             <button
               className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
               onClick={() => navigate("/login")}
@@ -156,150 +240,45 @@ export default function TeamProjectWorkspace() {
         description={project.description}
       />
 
-      {/* INFO BAR */}
-      <div className="mt-6 mb-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-        <div className="grid grid-cols-4 gap-6 text-sm items-center">
-          <div>
-            <div className="text-xs text-gray-500 mb-1">Team Leader</div>
-            <div className="font-medium text-gray-900 dark:text-white">
-              {project.teamLeader || "-"}
-            </div>
-          </div>
+      <ProjectProgressCard
+        teamLeader={project.teamLeader || "-"}
+        category={project.category || "-"}
+        status={statusFromProgress}
+        progress={safeProgress}
+      />
 
-          <div>
-            <div className="text-xs text-gray-500 mb-1">Category</div>
-            <div className="font-medium text-gray-900 dark:text-white">
-              {project.category || "-"}
-            </div>
-          </div>
+      <ProjectTabs
+        active={activeTab}
+        onChange={setActiveTab}
+        badges={{ notes: notesUnread }}
+      />
 
-          <div>
-            <div className="text-xs text-gray-500 mb-1">Status</div>
-            <div className="font-medium text-gray-900 dark:text-white">
-              {project.status || "-"}
-            </div>
-          </div>
-
-          <div>
-            <div className="text-xs text-gray-500 mb-1">Progress</div>
-            <div className="flex items-center gap-3">
-              <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div
-                  className="h-2 bg-blue-600 rounded-full"
-                  style={{ width: `${safeProgress}%` }}
-                />
-              </div>
-              <span className="text-xs">{safeProgress}%</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <ProjectTabs active={activeTab} onChange={setActiveTab} />
-
-      {/* DOCUMENTS TAB */}
       {activeTab === "documents" && (
-        <div className="mt-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 text-center">
-          <div className="font-semibold mb-2 text-gray-900 dark:text-white">
-            Documents
-          </div>
-
-          <div className="text-sm text-gray-500 mb-4">
-            {documents.length === 0 ? "No documents yet" : "Project documents"}
-          </div>
-
-          <label
-            className={[
-              "inline-block cursor-pointer px-4 py-2 text-white text-sm rounded",
-              uploading
-                ? "bg-blue-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700",
-            ].join(" ")}
-          >
-            {uploading ? "Uploading..." : "Choose file"}
-            <input
-              type="file"
-              className="hidden"
-              disabled={uploading}
-              onChange={(e) => {
-                const file = e.target.files?.[0] || null;
-                handleFileUpload(file, e.target);
-              }}
-            />
-          </label>
-
-          {selectedFile && (
-            <div className="mt-3 text-xs text-gray-600">
-              Selected: <b>{selectedFile.name}</b>
-            </div>
-          )}
-
-          {documents.length > 0 && (
-            <div className="mt-5 space-y-2 text-left">
-              {documents.map((d, i) => (
-                <div
-                  key={d?.id || i}
-                  className="flex justify-between items-center p-3 border rounded"
-                >
-                  <span className="text-gray-800 dark:text-gray-100">
-                    {getDocTitle(d)}
-                  </span>
-
-                  {getDocUrl(d) ? (
-                    <a
-                      href={getDocUrl(d)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-blue-600"
-                    >
-                      Open
-                    </a>
-                  ) : (
-                    <span className="text-xs text-gray-400">No link</span>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <DocumentsPanel
+          documents={Array.isArray(documents) ? documents : []}
+          selectedFile={selectedFile}
+          uploading={uploading}
+          onChooseFile={(file) => setSelectedFile(file)}
+          onUpload={handleUploadSelected}
+          getDocTitle={getDocTitle}
+          getDocUrl={getDocUrl}
+          onDeleteDoc={handleDeleteDoc}
+        />
       )}
 
-      {/* ARCHITECTURE TAB */}
       {activeTab === "architecture" && (
-        <>
-          <ArchitectureSummary
-            architectureConfig={project.architectureConfig}
-          />
-
-          <div className="mt-4 flex justify-end">
-            <button
-              onClick={goToArchitectureSelection}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
-            >
-              Edit Architecture
-            </button>
-          </div>
-        </>
+        <ArchitectureSection
+          architectureConfig={project.architectureConfig}
+          onEdit={goToArchitectureSelection}
+        />
       )}
 
-      {/* REQUIREMENTS TAB */}
       {activeTab === "requirements" && (
-        <div className="mt-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 text-center">
-          <div className="font-semibold mb-2 text-gray-900 dark:text-white">
-            Requirements
-          </div>
-          <div className="text-sm text-gray-500">Coming soon</div>
-        </div>
+        <EmptyProjectState title="Requirements" subtitle="Coming soon" />
       )}
 
-      {/* NOTES TAB */}
       {activeTab === "notes" && (
-        <div className="mt-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 text-center">
-          <div className="font-semibold mb-2 text-gray-900 dark:text-white">
-            Notes
-          </div>
-          <div className="text-sm text-gray-500">Coming soon</div>
-        </div>
+        <ProjectNotes projectId={pid} teamId={teamId} />
       )}
 
       <ChatPanel

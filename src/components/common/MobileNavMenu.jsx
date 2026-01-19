@@ -2,18 +2,10 @@ import { Link, useNavigate } from "react-router-dom";
 import ThemeToggle from "./ThemeToggle";
 import { logout } from "../../services/authService";
 
-export default function MobileNavMenu({ open, items, onClose, onProfile }) {
+export default function MobileNavMenu({ open, items, onClose, onProfile,onLogout }) {
   if (!open) return null;
   const navigate = useNavigate();
-  const onLogout = async () => {
-    try {
-      await logout();
-      navigate("/login");
-    } catch (error) {
-      console.error("LOGOUT ERROR:", error);
-      alert("Logout failed. Please try again.");
-    }
-  };
+  
   return (
     <div
       className="absolute top-full left-0 w-full z-50 p-4 md:hidden

@@ -1,6 +1,6 @@
-// src/pages/team/Architecture.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { updateProjectProgress } from "../../services/projectsService";
 
 import SectionAccordion from "../../components/common/SectionAccordion.jsx";
 import sectionsData from "../../mock/sectionsData.js";
@@ -10,18 +10,18 @@ import {
   getProjectById,
 } from "../../services/projectsService";
 
-function Architecture() {
+function TeamProjectArchitecture() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ✅ Get projectId from navigation state OR localStorage
+  // projectId from navigation state OR localStorage
   const projectId = useMemo(() => {
     return (
       location?.state?.projectId || localStorage.getItem("projectId") || ""
     );
   }, [location?.state?.projectId]);
 
-  // ✅ init selectedOptions structure based on sectionsData
+  // init selectedOptions structure
   const emptySelection = useMemo(() => {
     const initial = {};
     sectionsData.forEach((section) => {
@@ -31,11 +31,10 @@ function Architecture() {
   }, []);
 
   const [selectedOptions, setSelectedOptions] = useState(emptySelection);
-
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // ✅ Load existing saved config if exists (so user can edit later)
+  // Load saved config (RTDB: projects/{projectId}.architectureConfig)
   useEffect(() => {
     let alive = true;
 
@@ -44,7 +43,6 @@ function Architecture() {
         setLoading(true);
 
         if (!projectId) {
-          // no projectId → go back to project gate
           navigate("/project", { replace: true });
           return;
         }
@@ -52,13 +50,12 @@ function Architecture() {
         const p = await getProjectById(projectId);
         const existing = p?.architectureConfig;
 
-        if (alive) {
-          if (existing && typeof existing === "object") {
-            // merge existing with emptySelection to avoid missing keys
-            setSelectedOptions({ ...emptySelection, ...existing });
-          } else {
-            setSelectedOptions(emptySelection);
-          }
+        if (!alive) return;
+
+        if (existing && typeof existing === "object") {
+          setSelectedOptions({ ...emptySelection, ...existing });
+        } else {
+          setSelectedOptions(emptySelection);
         }
       } catch (err) {
         console.error("ARCH LOAD ERROR:", err);
@@ -89,17 +86,13 @@ function Architecture() {
   const handleSave = async () => {
     try {
       if (!projectId) throw new Error("Missing projectId.");
-
       setSaving(true);
 
-      // ✅ Save to Firestore (projects/{projectId}.architectureConfig)
+      // ✅ Save to RTDB via service
       await saveProjectArchitectureConfig(projectId, selectedOptions);
 
       alert("Saved ✅");
       navigate(`/project/${projectId}`, { replace: true });
-
-      // Optional: go back to project overview/workspace
-      // navigate(`/project/${projectId}`);
     } catch (err) {
       console.error("ARCH SAVE ERROR:", err);
       alert(String(err?.message || "Failed to save selection."));
@@ -155,4 +148,4 @@ function Architecture() {
   );
 }
 
-export default Architecture;
+export default TeamProjectArchitecture;

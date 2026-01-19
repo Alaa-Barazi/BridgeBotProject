@@ -1,4 +1,3 @@
-// src/pages/team/TeamProjectSetup.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -51,7 +50,6 @@ export default function TeamProjectSetup() {
 
   const markTouched = (name) => setTouched((p) => ({ ...p, [name]: true }));
 
-  // UI-only validation (no DB logic here)
   const errors = useMemo(() => {
     const e = {};
     if (!String(form.projectName).trim())
@@ -72,7 +70,6 @@ export default function TeamProjectSetup() {
 
       setIsSaving(true);
 
-      // ✅ All DB/auth logic moved to service
       const result = await createProjectFromSetup({
         projectName: form.projectName,
         category: form.category,
@@ -80,6 +77,7 @@ export default function TeamProjectSetup() {
         teamLeader: form.teamLeader,
       });
 
+      localStorage.setItem("projectId", result.projectId);
       navigate("/architecture", { state: { projectId: result.projectId } });
     } catch (err) {
       console.error("CREATE PROJECT ERROR:", err);
@@ -215,8 +213,6 @@ export default function TeamProjectSetup() {
             </div>
 
             <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-              <div className="text-xs text-gray-500 dark:text-gray-400"></div>
-
               <button
                 onClick={handleCreateProject}
                 disabled={!canSubmit}
