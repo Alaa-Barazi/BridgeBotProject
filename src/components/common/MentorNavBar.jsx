@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import ActionButton from "./ActionButton";
 import ThemeToggle from "./ThemeToggle";
 import MobileNavMenu from "./MobileNavMenu";
+import { logout } from "../../services/authService";
 
 export default function MentorNavBar() {
   const [openMenu, setOpenMenu] = useState(false);
@@ -66,11 +67,11 @@ export default function MentorNavBar() {
       {/* Desktop actions */}
       <div className="hidden md:flex items-center space-x-4">
         <ThemeToggle />
-        <ActionButton
+        {/* <ActionButton
           buttonStyle="text-gray-600 dark:text-slate-300 hover:text-blue-600"
           onClick={() => navigate("/profile")}
           text="Profile"
-        />
+        /> */}
         <ActionButton
           buttonStyle="text-gray-600 dark:text-slate-300 hover:text-red-600"
           onClick={() => onLogout()}
@@ -93,6 +94,7 @@ export default function MentorNavBar() {
         items={navBarItems}
         onClose={() => setOpenMenu(false)}
         onProfile={() => navigate("/profile")}
+        isStudent={false}
       />
     </nav>
   );

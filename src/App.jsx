@@ -65,11 +65,6 @@ export const MentorRouteItems = [
   { label: "Dashboard", path: "dashboard", element: <MentorDashboard /> },
   { label: "Dictionary", path: "dictionary", element: <Dictionary /> },
   { label: "Forum", path: "forum", element: <MentorForum /> },
-  {
-    label: "API key Change",
-    path: "api-change",
-    element: <MentorAPIChange />,
-  },
   { label: "Feedback", path: "feedback", element: <MentorFeedBack /> },
   { label: "Projects", path: "view-projects", element: <ViewProjects /> },
   {

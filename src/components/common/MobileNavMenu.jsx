@@ -2,10 +2,17 @@ import { Link, useNavigate } from "react-router-dom";
 import ThemeToggle from "./ThemeToggle";
 import { logout } from "../../services/authService";
 
-export default function MobileNavMenu({ open, items, onClose, onProfile,onLogout }) {
+export default function MobileNavMenu({
+  open,
+  items,
+  onClose,
+  onProfile,
+  onLogout,
+  isStudent = true,
+}) {
   if (!open) return null;
   const navigate = useNavigate();
-  
+
   return (
     <div
       className="absolute top-full left-0 w-full z-50 p-4 md:hidden
@@ -35,17 +42,19 @@ export default function MobileNavMenu({ open, items, onClose, onProfile,onLogout
         </div>
 
         {/* Profile */}
-        <button
-          onClick={() => {
-            onClose();
-            onProfile();
-          }}
-          className="w-full text-left py-2 transition
+        {isStudent && (
+          <button
+            onClick={() => {
+              onClose();
+              onProfile();
+            }}
+            className="w-full text-left py-2 transition
                      text-gray-600 dark:text-slate-300
                      hover:text-blue-600"
-        >
-          Profile
-        </button>
+          >
+            Profile
+          </button>
+        )}
 
         {/* Logout */}
         <button
