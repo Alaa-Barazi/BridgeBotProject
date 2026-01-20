@@ -39,7 +39,7 @@ const commonRouteItems = [
 ];
 
 export const routeItems = [
-  { label: "Home", path: "/", element: <Login /> },
+  { label: "Home", path: "/", element: <Home /> },
   // { label: "Dashboard", path: "/dashboard", element: <Dashboard/> },
   { label: "Dictionary", path: "/dictionary", element: <Dictionary /> },
   { label: "Quiz", path: "/quiz", element: <CourseQuiz /> },
