@@ -21,8 +21,6 @@ function requireStr(name, value) {
 
 function isMentorUser() {
   const u = auth?.currentUser;
-  // אם אצלך יש דרך אחרת לזהות מנטור – שימי פה.
-  // כרגע אנחנו סומכים על RULES שיאפשרו רק למנטור.
   return !!u;
 }
 

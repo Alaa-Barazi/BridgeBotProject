@@ -49,7 +49,7 @@ function formatDateFromMillis(ms) {
    MENTOR CONFIG (BY EMAIL)
    ========================= */
 const MENTOR_EMAILS = new Set([
-  "mentor@e.braude.ac.il", // ✅ תוסיפי פה עוד מיילים אם צריך
+  "mentor@e.braude.ac.il", // Add more email for mentor here if needed
 ]);
 
 function isMentorEmail(email) {
