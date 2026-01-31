@@ -33,6 +33,7 @@ import Architecture from "./pages/team/TeamProjectArchitecture";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import CourseQuiz from "./pages/CourseQuiz";
 import MentorGenerationPage from "./pages/mentor/MentorGenerationPage";
+import ProtectedRoute from "./routes/ProtectedRoute";
 
 const commonRouteItems = [
   { label: "Login", path: "/login", element: <Login /> },
@@ -71,31 +72,36 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Common routes like Login, Register, Forgot Password */}
+        {/* Public routes */}
         {commonRouteItems.map((item) => (
           <Route key={item.path} path={item.path} element={item.element} />
         ))}
-        {/* Student layout */}
-        <Route path="/" element={<MainLayout />}>
-          {routeItems.map((item) => (
-            <Route
-              key={item.path}
-              path={item.path === "/" ? "" : item.path.substring(1)}
-              element={item.element}
-            />
-          ))}
-          <Route path="project/:projectId" element={<TeamProjectHome />} />
+
+        {/* 🔒 Protected student routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/" element={<MainLayout />}>
+            {routeItems.map((item) => (
+              <Route
+                key={item.path}
+                path={item.path === "/" ? "" : item.path.substring(1)}
+                element={item.element}
+              />
+            ))}
+            <Route path="project/:projectId" element={<TeamProjectHome />} />
+          </Route>
         </Route>
 
-        {/* Mentor layout */}
-        <Route path="/mentor" element={<MentorLayout />}>
-          {MentorRouteItems.map((item) => (
-            <Route key={item.path} path={item.path} element={item.element} />
-          ))}
-          <Route
-            path="project-overview/:projectId"
-            element={<ProjectOverViewPage />}
-          />
+        {/* 🔒 Protected mentor routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/mentor" element={<MentorLayout />}>
+            {MentorRouteItems.map((item) => (
+              <Route key={item.path} path={item.path} element={item.element} />
+            ))}
+            <Route
+              path="project-overview/:projectId"
+              element={<ProjectOverViewPage />}
+            />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>
