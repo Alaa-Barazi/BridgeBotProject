@@ -41,10 +41,6 @@ function safeFileName(d) {
   );
 }
 
-/**
- * ✅ Downloads the original file from dataUrl
- * - works for data:*;base64,... (what we save in RTDB)
- */
 function downloadFromDataUrl(dataUrl, filename) {
   const url = toStr(dataUrl);
   if (!url || !url.startsWith("data:")) {
@@ -58,7 +54,7 @@ function downloadFromDataUrl(dataUrl, filename) {
 
   const a = document.createElement("a");
   a.href = url;
-  a.download = name; // forces download dialog
+  a.download = name;
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -86,7 +82,6 @@ export default function DocumentUploader({ week }) {
 
   useEffect(() => {
     refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [week]);
 
   const onUpload = async (files) => {
@@ -108,7 +103,6 @@ export default function DocumentUploader({ week }) {
     setError("");
     try {
       await deleteWeekDocument(week, id);
-      // ✅ immediately remove from UI
       setDocs((prev) => prev.filter((x) => String(x?.id) !== String(id)));
     } catch (e) {
       setError(String(e?.message || "Delete failed"));
@@ -126,11 +120,13 @@ export default function DocumentUploader({ week }) {
       : `Upload documents for Week ${week}`;
 
   return (
-    <div className="bg-white border rounded-xl p-4">
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-sm font-semibold">{title}</h2>
-          <p className="text-sm text-gray-500 mt-1">
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
+            {title}
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             These files will be used to generate quiz and dictionary.
           </p>
         </div>
@@ -147,7 +143,9 @@ export default function DocumentUploader({ week }) {
           <button
             onClick={() => inputRef.current?.click()}
             disabled={uploading}
-            className="px-3 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+            className="px-3 py-2 text-sm rounded-md
+                       bg-blue-600 hover:bg-blue-700
+                       text-white disabled:opacity-60"
           >
             {uploading ? "Uploading..." : "Upload files"}
           </button>
@@ -155,35 +153,48 @@ export default function DocumentUploader({ week }) {
       </div>
 
       {error && (
-        <div className="mt-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+        <div
+          className="mt-3 text-sm
+                        text-red-600 dark:text-red-400
+                        bg-red-50 dark:bg-red-900/30
+                        border border-red-200 dark:border-red-800
+                        rounded-md px-3 py-2"
+        >
           {error}
         </div>
       )}
 
       <div className="mt-4 space-y-2">
         {docs.length === 0 && !loading && (
-          <p className="text-sm text-gray-500">No documents uploaded yet.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            No documents uploaded yet.
+          </p>
         )}
 
         {docs.map((d) => (
           <div
             key={d.id}
-            className="flex items-center justify-between border rounded-lg px-3 py-2 bg-gray-50"
+            className="flex items-center justify-between
+                       border border-gray-200 dark:border-gray-700
+                       rounded-lg px-3 py-2
+                       bg-gray-50 dark:bg-gray-700/40"
           >
-            {/* Left: file info */}
             <div className="min-w-0">
-              <p className="text-sm font-medium truncate">{safeFileName(d)}</p>
-              <p className="text-xs text-gray-500">
+              <p className="text-sm font-medium truncate text-gray-900 dark:text-white">
+                {safeFileName(d)}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 {d.uploadedAt ? new Date(d.uploadedAt).toLocaleString() : ""}
               </p>
             </div>
 
-            {/* Right: actions */}
             <div className="flex items-center gap-3 shrink-0">
               <button
                 type="button"
                 onClick={() => onOpen(d)}
-                className="text-sm text-blue-600 hover:text-blue-700 underline underline-offset-2"
+                className="text-sm text-blue-600 dark:text-blue-400
+                           hover:text-blue-700 dark:hover:text-blue-300
+                           underline underline-offset-2"
               >
                 Open
               </button>
@@ -191,7 +202,8 @@ export default function DocumentUploader({ week }) {
               <button
                 type="button"
                 onClick={() => onDelete(d.id)}
-                className="text-gray-500 hover:text-red-600"
+                className="text-gray-500 dark:text-gray-400
+                           hover:text-red-600 dark:hover:text-red-400"
                 title="Delete"
                 aria-label="Delete"
               >

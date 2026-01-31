@@ -103,6 +103,7 @@ export default function MentorNavBar() {
         items={navBarItems}
         onClose={() => setOpenMenu(false)}
         onProfile={() => navigate("/profile")}
+        onLogout={() => onLogout()}
         isStudent={false}
       />
     </nav>

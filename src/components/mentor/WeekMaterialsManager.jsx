@@ -20,7 +20,7 @@ import {
 import { auth } from "../../firebase";
 
 export default function WeekMaterialsManager() {
-  const [weekId, setWeekId] = useState("week_1"); // IMPORTANT: your Firestore doc id
+  const [weekId, setWeekId] = useState("week_1");
   const [kind, setKind] = useState("lecture");
   const [title, setTitle] = useState("");
   const [file, setFile] = useState(null);
@@ -40,7 +40,6 @@ export default function WeekMaterialsManager() {
 
   useEffect(() => {
     refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [weekId]);
 
   const onUpload = async (e) => {
@@ -49,7 +48,6 @@ export default function WeekMaterialsManager() {
 
     setLoading(true);
     try {
-      // 1) Create Firestore doc to get materialId
       const materialId = await createMaterialDoc(weekId, {
         kind,
         title: title.trim() || file.name,
@@ -59,11 +57,9 @@ export default function WeekMaterialsManager() {
         downloadURL: "",
       });
 
-      // 2) Upload file to Storage
       const storagePath = `weeks/${weekId}/materials/${materialId}/${file.name}`;
       const downloadURL = await uploadFileToPath(storagePath, file);
 
-      // 3) Update Firestore doc with URL + path
       await updateMaterialDoc(weekId, materialId, { storagePath, downloadURL });
 
       setTitle("");
@@ -71,7 +67,7 @@ export default function WeekMaterialsManager() {
       await refresh();
     } catch (err) {
       console.error(err);
-      alert("Upload failed (check rules).");
+      alert("Upload failed");
     } finally {
       setLoading(false);
     }
@@ -85,9 +81,6 @@ export default function WeekMaterialsManager() {
       if (m.storagePath) await deleteFileByPath(m.storagePath);
       await deleteMaterialDoc(weekId, m.id);
       await refresh();
-    } catch (err) {
-      console.error(err);
-      alert("Delete failed.");
     } finally {
       setLoading(false);
     }
@@ -115,14 +108,20 @@ export default function WeekMaterialsManager() {
       <form onSubmit={onUpload} className="space-y-3">
         <div className="flex flex-wrap gap-2">
           <input
-            className="border rounded px-3 py-2 w-40"
+            className="border rounded px-3 py-2 w-40
+                       bg-white dark:bg-gray-700
+                       border-gray-300 dark:border-gray-600
+                       text-gray-900 dark:text-white"
             value={weekId}
             onChange={(e) => setWeekId(e.target.value)}
             placeholder="week_1"
           />
 
           <select
-            className="border rounded px-3 py-2"
+            className="border rounded px-3 py-2
+                       bg-white dark:bg-gray-700
+                       border-gray-300 dark:border-gray-600
+                       text-gray-900 dark:text-white"
             value={kind}
             onChange={(e) => setKind(e.target.value)}
           >
@@ -131,7 +130,10 @@ export default function WeekMaterialsManager() {
           </select>
 
           <input
-            className="border rounded px-3 py-2 flex-1 min-w-55"
+            className="border rounded px-3 py-2 flex-1 min-w-55
+                       bg-white dark:bg-gray-700
+                       border-gray-300 dark:border-gray-600
+                       text-gray-900 dark:text-white"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Title (optional)"
@@ -141,11 +143,15 @@ export default function WeekMaterialsManager() {
         <div className="flex items-center gap-3">
           <input
             type="file"
+            className="text-gray-700 dark:text-gray-300"
             onChange={(e) => setFile(e.target.files?.[0] || null)}
           />
+
           <button
             disabled={loading}
-            className="px-4 py-2 rounded bg-blue-600 text-white disabled:opacity-60"
+            className="px-4 py-2 rounded
+                       bg-blue-600 hover:bg-blue-700
+                       text-white disabled:opacity-60"
           >
             {loading ? "Working..." : "Upload"}
           </button>
@@ -156,20 +162,22 @@ export default function WeekMaterialsManager() {
         {items.map((m) => (
           <div
             key={m.id}
-            className="flex items-center justify-between border-b py-2"
+            className="flex items-center justify-between border-b
+                       border-gray-200 dark:border-gray-700 py-2"
           >
             <div>
               <div className="font-medium text-gray-900 dark:text-white">
                 {m.title}
               </div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-gray-500 dark:text-gray-400">
                 {m.kind} • {m.fileName}
               </div>
             </div>
-            <div className="flex gap-3">
+
+            <div className="flex gap-3 text-sm">
               {m.downloadURL && (
                 <a
-                  className="text-blue-600 hover:underline"
+                  className="text-blue-600 dark:text-blue-400 hover:underline"
                   href={m.downloadURL}
                   target="_blank"
                   rel="noreferrer"
@@ -179,14 +187,14 @@ export default function WeekMaterialsManager() {
               )}
               <button
                 type="button"
-                className="hover:underline"
+                className="text-gray-600 dark:text-gray-300 hover:underline"
                 onClick={() => onRename(m)}
               >
                 Update
               </button>
               <button
                 type="button"
-                className="text-red-600 hover:underline"
+                className="text-red-600 dark:text-red-400 hover:underline"
                 onClick={() => onDelete(m)}
               >
                 Delete
@@ -194,8 +202,11 @@ export default function WeekMaterialsManager() {
             </div>
           </div>
         ))}
+
         {items.length === 0 && (
-          <div className="text-sm text-gray-500">No files yet.</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            No files yet.
+          </div>
         )}
       </div>
     </div>

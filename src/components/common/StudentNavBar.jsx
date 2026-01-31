@@ -25,7 +25,7 @@ export default function StudentNavBar() {
     { label: "Project", path: `/project/${currentProjectId}` },
     { label: "Quiz", path: "/quiz" },
     { label: "Forum", path: "/forum" },
-    { label: "Architecture", path: "/architecture" },
+  
   ];
   const onLogout = async () => {
     try {
@@ -106,6 +106,7 @@ export default function StudentNavBar() {
         items={navBarItems}
         onClose={() => setOpenMenu(false)}
         onProfile={() => navigate("/profile")}
+        onLogout={() => onLogout()}
       />
     </nav>
   );
