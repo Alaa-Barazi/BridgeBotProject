@@ -1,4 +1,11 @@
-// src/pages/auth/Profile.jsx
+/**
+ * Profile
+ *
+ * User profile page.
+ * Loads authenticated user and team information,
+ * allows editing the team name, and supports logout.
+ */
+
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 

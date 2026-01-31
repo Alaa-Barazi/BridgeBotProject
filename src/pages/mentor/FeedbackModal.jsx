@@ -1,4 +1,11 @@
-// src/pages/mentor/FeedbackModal.jsx
+/**
+ * FeedbackModal
+ *
+ * Reusable modal for mentors to send written feedback.
+ * Allows optional association of feedback with a specific document
+ * and submits the feedback text with related metadata.
+ */
+
 import { IoClose } from "react-icons/io5";
 import ActionButton from "../../components/common/ActionButton";
 import { useEffect, useMemo, useState } from "react";
@@ -16,7 +23,7 @@ const FeedbackModal = ({ isOpen, onClose, onSave, documents = [] }) => {
 
   const docs = useMemo(
     () => (Array.isArray(documents) ? documents : []),
-    [documents]
+    [documents],
   );
 
   const selectedDoc = useMemo(() => {
@@ -108,7 +115,6 @@ const FeedbackModal = ({ isOpen, onClose, onSave, documents = [] }) => {
         <div className="flex justify-end gap-3 mt-5">
           <ActionButton text="Cancel" type="clear" onClick={onClose} />
           <ActionButton text="Send Feedback" onClick={handleSubmit} />
-          
         </div>
       </div>
     </div>
@@ -116,4 +122,3 @@ const FeedbackModal = ({ isOpen, onClose, onSave, documents = [] }) => {
 };
 
 export default FeedbackModal;
-

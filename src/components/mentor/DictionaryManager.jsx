@@ -1,3 +1,11 @@
+/**
+ * DictionaryManager
+ *
+ * Mentor-facing component for managing the weekly dictionary.
+ * Allows AI-based generation of terms from uploaded documents
+ * and editing individual definitions using natural language instructions.
+ */
+
 import { useEffect, useState } from "react";
 import {
   generateWeekDictionary,

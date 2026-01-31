@@ -1,3 +1,10 @@
+/**
+ * WeekSelector
+ *
+ * Dropdown control for selecting the active course week.
+ * Used by mentors and students to switch weekly content.
+ */
+
 export default function WeekSelector({ activeWeek, onChange, weeks }) {
   const options = Array.from({ length: weeks }, (_, i) => i + 1);
 

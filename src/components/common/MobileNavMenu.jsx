@@ -1,7 +1,13 @@
+/**
+ * MobileNavMenu
+ *
+ * Responsive navigation menu for mobile view.
+ * Displays navigation links, theme toggle, profile access,
+ * and logout action when the mobile menu is open.
+ */
+
 import { Link, useNavigate } from "react-router-dom";
 import ThemeToggle from "./ThemeToggle";
-import { logout } from "../../services/authService";
-
 export default function MobileNavMenu({
   open,
   items,

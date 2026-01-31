@@ -1,9 +1,24 @@
-// src/services/documentService.js (RTDB VERSION)
-// Week materials: saves extracted text + ALSO the original file as dataUrl (base64)
-// /weeks/week_{n}/materials/{docId}
-//
-// Project documents: saves dataUrl (base64)
-// /projects/{projectId}/documents/{docId}
+/**
+ * documentService (RTDB)
+ *
+ * Handles document management for both weekly course materials
+ * and project-level documents using Firebase Realtime Database.
+ *
+ * Features:
+ * - Upload, list, subscribe, and delete weekly documents
+ * - Extract and store text content for AI processing (Gemini)
+ * - Store original files as Base64 dataUrls for download/view
+ * - Manage project documents under projects/{projectId}
+ *
+ * Design notes:
+ * - Files are stored as Base64 (size-limited) directly in RTDB
+ * - Intended only for small documents (not large binaries)
+ * - Week paths are normalized as: weeks/week_{n}/materials
+ *
+ * Data structures:
+ * - /weeks/week_{n}/materials/{docId}
+ * - /projects/{projectId}/documents/{docId}
+ */
 
 import { rtdb, auth } from "../firebase";
 import {
@@ -81,7 +96,7 @@ export async function uploadWeekDocuments(week, files) {
     if (size <= 0) throw new Error("Invalid file.");
     if (size > MAX_FILE_BYTES) {
       throw new Error(
-        `File too large. Max allowed is ${Math.round(MAX_FILE_BYTES / 1024)}KB.`
+        `File too large. Max allowed is ${Math.round(MAX_FILE_BYTES / 1024)}KB.`,
       );
     }
 
@@ -151,7 +166,7 @@ export function subscribeWeekDocuments(week, { onState } = {}) {
       onState?.({
         error: String(err?.message || "Failed to load week documents."),
       });
-    }
+    },
   );
 
   return unsub;
@@ -214,7 +229,7 @@ export function subscribeProjectDocuments(projectId, { onState } = {}) {
       arr.sort(
         (a, b) =>
           Number(b?.createdAt || b?.uploadedAt || b?.updatedAt || 0) -
-          Number(a?.createdAt || a?.uploadedAt || a?.updatedAt || 0)
+          Number(a?.createdAt || a?.uploadedAt || a?.updatedAt || 0),
       );
 
       onState?.({ documents: arr });
@@ -224,7 +239,7 @@ export function subscribeProjectDocuments(projectId, { onState } = {}) {
       onState?.({
         error: String(err?.message || "Failed to load project documents."),
       });
-    }
+    },
   );
 
   return unsub;
@@ -240,7 +255,7 @@ export async function uploadProjectDocumentBase64(projectId, file) {
   if (size <= 0) throw new Error("Invalid file.");
   if (size > MAX_FILE_BYTES) {
     throw new Error(
-      `File too large. Max allowed is ${Math.round(MAX_FILE_BYTES / 1024)}KB.`
+      `File too large. Max allowed is ${Math.round(MAX_FILE_BYTES / 1024)}KB.`,
     );
   }
 

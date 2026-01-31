@@ -1,4 +1,12 @@
-// src/pages/team/TeamProjectWorkspace.jsx
+/**
+ * TeamProjectWorkspace
+ *
+ * Main working area for an active team project.
+ * Loads real-time project data, documents, notes, and progress,
+ * manages tab navigation, and connects project context to
+ * documents, architecture, notes, and the AI assistant.
+ */
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -154,7 +162,7 @@ export default function TeamProjectWorkspace() {
 
   const getDocTitle = useCallback(
     (d) => d?.title || d?.name || d?.fileName || "Document",
-    []
+    [],
   );
 
   // NOTE: for download we mainly use dataUrl, but keep this helper if you need
@@ -197,14 +205,14 @@ export default function TeamProjectWorkspace() {
         await deleteProjectDocument(pid, docId);
         // optional immediate UI removal (subscription will also handle it)
         setDocuments((prev) =>
-          Array.isArray(prev) ? prev.filter((d) => d?.id !== docId) : []
+          Array.isArray(prev) ? prev.filter((d) => d?.id !== docId) : [],
         );
       } catch (e) {
         console.error(e);
         setErrMsg(String(e?.message || "Delete failed."));
       }
     },
-    [pid]
+    [pid],
   );
 
   if (loading) return <div className="p-8">Loading...</div>;

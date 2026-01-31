@@ -1,31 +1,37 @@
+/**
+ * App routing configuration
+ *
+ * Defines all application routes using React Router.
+ * Includes:
+ * - Public routes (login, register, forgot password)
+ * - Student routes wrapped with MainLayout
+ * - Mentor routes wrapped with MentorLayout
+ *
+ * Route definitions are grouped into reusable arrays
+ * to keep routing structure readable and maintainable.
+ */
+
 import "./App.css";
 import MainLayout from "./layout/MainLayout";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Dictionary from "./pages/Dictionary";
-import ChatBot from "./pages/ChatBot";
-import Home from "./pages/Home";
-import Quiz from "./pages/Quiz";
-import Forum from "./pages/Forum";
 
-import LearningDiary from "./pages/LearningDiary";
+import Home from "./pages/Home";
+import Forum from "./pages/Forum";
 import Profile from "./pages/auth/Profile";
 import MentorLayout from "./layout/MentorLayout";
 import MentorDashboard from "./pages/mentor/MentorDashboard";
 import ViewProjects from "./pages/mentor/ViewProjects";
 import MentorForum from "./pages/mentor/MentorForum";
-import MentorBotInsight from "./pages/mentor/MentorAPIChange";
 import MentorFeedBack from "./pages/mentor/MentorFeedBack";
-import MentorDictionary from "./pages/mentor/MentorDictionary";
 import ProjectOverViewPage from "./pages/mentor/ProjectOverViewPage";
 import TeamProjectHome from "./pages/team/TeamProjectHome";
-
 import ChatPanel from "./components/chatBot/ChatPanel";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Architecture from "./pages/team/TeamProjectArchitecture";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import CourseQuiz from "./pages/CourseQuiz";
-import MentorAPIChange from "./pages/mentor/MentorAPIChange";
 import MentorGenerationPage from "./pages/mentor/MentorGenerationPage";
 
 const commonRouteItems = [
@@ -40,22 +46,10 @@ const commonRouteItems = [
 
 export const routeItems = [
   { label: "Home", path: "/", element: <Home /> },
-  // { label: "Dashboard", path: "/dashboard", element: <Dashboard/> },
   { label: "Dictionary", path: "/dictionary", element: <Dictionary /> },
   { label: "Quiz", path: "/quiz", element: <CourseQuiz /> },
   { label: "Forum", path: "/forum", element: <Forum /> },
   { label: "Architecture", path: "/architecture", element: <Architecture /> },
-  // {
-  //   label: "Project",
-  //   path: "/project/:projectId",
-  //   element: <TeamProjectHome />,
-  // },
-  // {
-  //   label: "TeamWorkSpaceProject",
-  //   path: "/project/:projectId",
-  //   element: <TeamProjectHome />,
-  // },
-  { label: "Learning Diary", path: "/diary", element: <LearningDiary /> },
   { label: "ChatBot", path: "/chatbot", element: <ChatPanel /> },
   { label: "Profile", path: "/profile", element: <Profile /> },
 ];

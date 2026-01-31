@@ -1,4 +1,11 @@
-// src/pages/mentor/MentorForum.jsx
+/**
+ * MentorForum
+ *
+ * Mentor-facing forum page for answering student questions.
+ * Loads questions in real time, displays replies per question,
+ * and allows mentors to post answers with role-based labeling.
+ */
+
 import { useEffect, useState } from "react";
 import {
   subscribeQuestions,
@@ -56,7 +63,7 @@ const MentorForum = () => {
         const arr = Array.isArray(rows) ? rows : [];
         // RTDB timestamps are numbers (after serverTimestamp resolves)
         arr.sort(
-          (a, b) => Number(a?.createdAt || 0) - Number(b?.createdAt || 0)
+          (a, b) => Number(a?.createdAt || 0) - Number(b?.createdAt || 0),
         );
         setAnswers(arr);
         setAnswersLoading(false);
@@ -153,7 +160,7 @@ const MentorForum = () => {
 
             // ✅ count from DB field (fast), fallback to loaded answers only if open
             const count = Number(
-              q.answersCount ?? (isOpen ? answers.length : 0) ?? 0
+              q.answersCount ?? (isOpen ? answers.length : 0) ?? 0,
             );
 
             const showReplyForm = !!replyOpen[q.id];

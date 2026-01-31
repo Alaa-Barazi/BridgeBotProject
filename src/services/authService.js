@@ -1,4 +1,18 @@
-// src/services/authService.js
+/**
+ * authService
+ *
+ * Centralized authentication and user management service.
+ * Handles login, registration, logout, password reset,
+ * mentor detection, and profile synchronization with Firebase
+ * Authentication and Realtime Database.
+ *
+ * Responsibilities:
+ * - Enforce email domain and password validation
+ * - Distinguish between mentor and student users
+ * - Create and maintain users, teams, and mentors records in RTDB
+ * - Manage session-related side effects (localStorage teamId)
+ */
+
 import { auth, rtdb } from "../firebase";
 
 import {
@@ -196,7 +210,7 @@ export async function registerUser(formData) {
     const cred = await createUserWithEmailAndPassword(
       auth,
       email,
-      formData.password
+      formData.password,
     );
     createdUser = cred.user;
     const uid = createdUser.uid;

@@ -1,4 +1,29 @@
-// src/services/notesService.js
+/**
+ * notesService
+ *
+ * RTDB service layer for mentor notes attached to projects.
+ *
+ * Responsibilities:
+ * - Subscribe to project notes for teams with unread tracking
+ * - Subscribe to project notes for mentors (full visibility)
+ * - Create mentor notes linked to projects and documents
+ * - Mark project notes as read per team
+ *
+ * Data model:
+ * /projects/{projectId}/notes/{noteId}
+ * - body
+ * - mentorUid
+ * - aboutDocId (optional)
+ * - aboutDocTitle (optional)
+ * - createdAt (number)
+ * - readByTeams: { [teamId]: true }
+ *
+ * Notes:
+ * - Uses Firebase Realtime Database listeners
+ * - Unread count is computed per team using readByTeams
+ * - Optimized to update only unread notes
+ */
+
 import { rtdb, auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { ref, get, update, onValue, push, set } from "firebase/database";
@@ -60,7 +85,9 @@ export function subscribeProjectNotes(projectId, teamId, { onState } = {}) {
           ...(val || {}),
         }));
 
-        arr.sort((a, b) => Number(b?.createdAt || 0) - Number(a?.createdAt || 0));
+        arr.sort(
+          (a, b) => Number(b?.createdAt || 0) - Number(a?.createdAt || 0),
+        );
 
         const unreadCount = arr.reduce((acc, n) => {
           const isRead = n?.readByTeams?.[tid] === true;
@@ -77,7 +104,7 @@ export function subscribeProjectNotes(projectId, teamId, { onState } = {}) {
           notes: [],
           unreadCount: 0,
         });
-      }
+      },
     );
   });
 
@@ -124,7 +151,9 @@ export function subscribeProjectNotesMentor(projectId, { onState } = {}) {
           id,
           ...(val || {}),
         }));
-        arr.sort((a, b) => Number(b?.createdAt || 0) - Number(a?.createdAt || 0));
+        arr.sort(
+          (a, b) => Number(b?.createdAt || 0) - Number(a?.createdAt || 0),
+        );
         emit({ loading: false, error: "", notes: arr });
       },
       (err) => {
@@ -134,7 +163,7 @@ export function subscribeProjectNotesMentor(projectId, { onState } = {}) {
           error: String(err?.message || "Failed to load notes."),
           notes: [],
         });
-      }
+      },
     );
   });
 
@@ -149,7 +178,7 @@ export function subscribeProjectNotesMentor(projectId, { onState } = {}) {
    ========================================================= */
 export async function createProjectNote(
   projectId,
-  { body, aboutDocId = null, aboutDocTitle = null } = {}
+  { body, aboutDocId = null, aboutDocTitle = null } = {},
 ) {
   const pid = requireStr("projectId", projectId);
   const text = toStr(body);
@@ -179,7 +208,11 @@ export async function createProjectNote(
    TEAM: mark only UNREAD as read (efficient)
    - Pass notes list if you already have it (avoids extra get)
    ========================================================= */
-export async function markUnreadProjectNotesRead(projectId, teamId, notesList = null) {
+export async function markUnreadProjectNotesRead(
+  projectId,
+  teamId,
+  notesList = null,
+) {
   const pid = requireStr("projectId", projectId);
   const tid = requireStr("teamId", teamId);
 

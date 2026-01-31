@@ -1,4 +1,11 @@
-// src/components/team/project/ArchitectureSection.jsx
+/**
+ * ArchitectureSection
+ *
+ * Displays a summary of the selected project architecture.
+ * Groups selected components by section and provides
+ * an option to navigate to the architecture editor.
+ */
+
 import { useMemo } from "react";
 import sectionsData from "../../../mock/sectionsData";
 
@@ -23,7 +30,7 @@ function ArchitectureSummary({ architectureConfig }) {
         <div className="font-semibold mb-1 text-gray-900 dark:text-white">
           Architecture
         </div>
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-gray-500 dark:text-gray-400">
           No architecture selected yet
         </div>
       </div>
@@ -45,7 +52,10 @@ function ArchitectureSummary({ architectureConfig }) {
             {selected.map((item) => (
               <span
                 key={item}
-                className="px-3 py-1 rounded-full text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600"
+                className="px-3 py-1 rounded-full text-sm
+                  bg-gray-100 dark:bg-gray-700
+                  text-gray-700 dark:text-gray-200
+                  border border-gray-200 dark:border-gray-600"
               >
                 {item}
               </span>
@@ -63,15 +73,16 @@ export default function ArchitectureSection({ architectureConfig, onEdit }) {
   return (
     <>
       <ArchitectureSummary architectureConfig={architectureConfig} />
+
       <div className="mt-4 flex justify-end">
         <button
           onClick={onEdit}
           disabled={!canEdit}
           className={[
-            "px-4 py-2 rounded text-white",
+            "px-4 py-2 rounded text-white transition",
             canEdit
-              ? "bg-blue-600 hover:bg-blue-700"
-              : "bg-gray-400 cursor-not-allowed",
+              ? "bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+              : "bg-gray-400 dark:bg-gray-600 cursor-not-allowed",
           ].join(" ")}
         >
           Edit Architecture

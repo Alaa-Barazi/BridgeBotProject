@@ -1,3 +1,21 @@
+/**
+ * Firebase initialization and shared service exports
+ *
+ * This file initializes the Firebase app using environment variables
+ * and exports configured instances for use across the application.
+ *
+ * Exported services:
+ * - auth    → Firebase Authentication (login, register, roles)
+ * - rtdb    → Realtime Database (weeks, quiz, dictionary, forum, notes)
+ * - db      → Firestore (legacy / specific collections only)
+ * - storage → Firebase Storage (file uploads)
+ *
+ * IMPORTANT:
+ * - Most dynamic and collaborative data is stored in RTDB
+ * - Firestore is used only where explicitly required
+ * - Storage is used only for large binary files
+ */
+
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getDatabase } from "firebase/database";

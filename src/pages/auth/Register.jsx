@@ -1,4 +1,11 @@
-// src/pages/auth/Register.jsx
+/**
+ * Register
+ *
+ * User registration page.
+ * Collects account and team details, creates a new user,
+ * and redirects to the profile setup after successful signup.
+ */
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { registerUser } from "../../services/authService";

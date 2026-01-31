@@ -1,3 +1,11 @@
+/**
+ * ForumSubjectContent
+ *
+ * Displays the full content of a forum subject.
+ * Shows the subject title and body, allows replying,
+ * and toggles visibility of existing replies.
+ */
+
 import { useState } from "react";
 import ActionButton from "./ActionButton";
 import ReplyBox from "./ReplyBox";

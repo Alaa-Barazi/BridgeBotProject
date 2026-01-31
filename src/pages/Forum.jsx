@@ -1,4 +1,11 @@
-// src/pages/Forum.jsx
+/**
+ * Forum
+ *
+ * Student-facing discussion forum.
+ * Allows users to post questions, view existing discussions,
+ * and add replies with real-time updates.
+ */
+
 import { useEffect, useState } from "react";
 import {
   createQuestion,

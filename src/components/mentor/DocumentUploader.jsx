@@ -1,4 +1,12 @@
-// src/components/mentor/DocumentUploader.jsx
+/**
+ * DocumentUploader
+ *
+ * Mentor-facing component for managing weekly documents.
+ * Supports uploading multiple files, listing existing documents,
+ * downloading original files from data URLs, and deleting documents.
+ * Uploaded files are later used for quiz and dictionary generation.
+ */
+
 import { useEffect, useRef, useState } from "react";
 import {
   uploadWeekDocuments,
@@ -29,10 +37,7 @@ const toStr = (v) => String(v ?? "").trim();
 
 function safeFileName(d) {
   return (
-    toStr(d?.fileName) ||
-    toStr(d?.title) ||
-    toStr(d?.filename) ||
-    "document"
+    toStr(d?.fileName) || toStr(d?.title) || toStr(d?.filename) || "document"
   );
 }
 
@@ -43,7 +48,9 @@ function safeFileName(d) {
 function downloadFromDataUrl(dataUrl, filename) {
   const url = toStr(dataUrl);
   if (!url || !url.startsWith("data:")) {
-    alert("No file data available. Upload the document again (new version saves dataUrl).");
+    alert(
+      "No file data available. Upload the document again (new version saves dataUrl).",
+    );
     return;
   }
 

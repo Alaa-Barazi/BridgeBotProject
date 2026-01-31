@@ -1,3 +1,19 @@
+/**
+ * TeamProjectArchitecture
+ *
+ * React page that allows a team to configure and select their project architecture.
+ * The page displays predefined architecture sections with selectable options
+ * and persists the selection per project.
+ *
+ * Data flow:
+ * - sectionsData defines available architecture sections and options
+ * - User selections are stored in selectedOptions state
+ * - Data is fetched and saved via projectsService
+ *
+ * Navigation:
+ * - Redirects to the project page after successful save
+ */
+
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { updateProjectProgress } from "../../services/projectsService";
@@ -14,14 +30,12 @@ function TeamProjectArchitecture() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // projectId from navigation state OR localStorage
   const projectId = useMemo(() => {
     return (
       location?.state?.projectId || localStorage.getItem("projectId") || ""
     );
   }, [location?.state?.projectId]);
 
-  // init selectedOptions structure
   const emptySelection = useMemo(() => {
     const initial = {};
     sectionsData.forEach((section) => {
@@ -34,7 +48,6 @@ function TeamProjectArchitecture() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Load saved config (RTDB: projects/{projectId}.architectureConfig)
   useEffect(() => {
     let alive = true;
 
@@ -88,7 +101,6 @@ function TeamProjectArchitecture() {
       if (!projectId) throw new Error("Missing projectId.");
       setSaving(true);
 
-      // ✅ Save to RTDB via service
       await saveProjectArchitectureConfig(projectId, selectedOptions);
 
       alert("Saved ✅");
@@ -103,20 +115,30 @@ function TeamProjectArchitecture() {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-slate-100 px-4">
-        <div className="text-slate-700">Loading...</div>
+      <div
+        className="min-h-screen w-full flex items-center justify-center
+                      bg-slate-100 dark:bg-gray-900 px-4"
+      >
+        <div className="text-slate-700 dark:text-gray-300">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen w-full flex justify-center bg-slate-100 py-10 px-4">
-      <div className="w-full max-w-xl p-8 rounded-2xl bg-white shadow-md">
+    <div
+      className="min-h-screen w-full flex justify-center
+                    bg-slate-100 dark:bg-gray-900 py-10 px-4"
+    >
+      <div
+        className="w-full max-w-xl p-8 rounded-2xl
+                      bg-white dark:bg-gray-800
+                      shadow-md"
+      >
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
             Configuration Selection
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-slate-500 dark:text-gray-400 mt-1">
             Choose the components you want for your project architecture.
           </p>
         </div>
@@ -137,7 +159,7 @@ function TeamProjectArchitecture() {
           disabled={saving}
           className={[
             "mt-6 w-full px-6 py-3 text-white rounded-lg font-semibold shadow transition",
-            "bg-blue-600 hover:bg-blue-700",
+            "bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600",
             "disabled:opacity-60 disabled:cursor-not-allowed",
           ].join(" ")}
         >

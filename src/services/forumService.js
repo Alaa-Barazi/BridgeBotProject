@@ -1,4 +1,20 @@
-// src/services/forumService.js (RTDB - answers inside questions)
+/**
+ * forumService (RTDB)
+ *
+ * Provides forum data operations for questions and answers.
+ * Uses Firebase Realtime Database with answers stored
+ * directly under their parent questions.
+ *
+ * Responsibilities:
+ * - Create and list forum questions
+ * - Subscribe to real-time updates for questions and answers
+ * - Add answers with automatic role detection (mentor vs student)
+ * - Maintain answersCount and updated timestamps atomically
+ *
+ * Data structure:
+ * - /questions/{questionId}
+ * - /questions/{questionId}/answers/{answerId}
+ */
 
 import { rtdb, auth } from "../firebase";
 import {

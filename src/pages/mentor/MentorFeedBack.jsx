@@ -1,4 +1,11 @@
-// src/pages/mentor/MentorFeedBack.jsx
+/**
+ * MentorFeedBack
+ *
+ * Mentor-facing page for viewing and creating project feedback.
+ * Loads project documents for context, subscribes to feedback notes
+ * in real time, and allows mentors to add new feedback via a modal.
+ */
+
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { IoArrowBack } from "react-icons/io5";
@@ -45,7 +52,7 @@ export default function MentorFeedBack() {
             id: d.id,
             title: d.title || d.fileName || "Document",
             fileName: d.fileName || d.title || "Document",
-          }))
+          })),
         );
       } catch (e) {
         console.error("LOAD DOCS ERROR:", e);

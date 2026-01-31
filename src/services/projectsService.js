@@ -1,4 +1,47 @@
-// src/services/projectsService.js  (RTDB VERSION - notes)
+/**
+ * projectsService (RTDB)
+ *
+ * Central service for:
+ * - Team -> Project creation and ownership resolution
+ * - Project workspace loading and authorization
+ * - Project architecture configuration
+ * - Project progress and status updates
+ * - Team-side project notes subscription and read tracking
+ *
+ * Data model (RTDB):
+ *
+ * /users/{uid}
+ *   - teamId
+ *
+ * /teams/{teamId}
+ *   - memberUids: { [uid]: true }
+ *
+ * /projects/{projectId}
+ *   - ownerteamid
+ *   - projectName
+ *   - description
+ *   - category
+ *   - teamLeader
+ *   - progress
+ *   - status
+ *   - architectureConfig
+ *   - createdAt / updatedAt
+ *
+ * /projects/{projectId}/notes/{noteId}
+ *   - body
+ *   - mentorUid
+ *   - aboutDocId (optional)
+ *   - aboutDocTitle (optional)
+ *   - createdAt (number)
+ *   - readByTeams: { [teamId]: true }
+ *
+ * Notes:
+ * - Ownership is enforced via ownerteamid
+ * - Notes unread state is computed per team using readByTeams
+ * - This file contains TEAM-facing logic
+ * - Mentor-facing note creation lives in mentorService / notesService
+ */
+
 import { rtdb, auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
@@ -114,7 +157,7 @@ export async function getTeamProjectByOwnerTeamId(teamId) {
     ref(rtdb, "projects"),
     orderByChild("ownerteamid"),
     equalTo(tid),
-    limitToFirst(1)
+    limitToFirst(1),
   );
 
   const snap = await get(q);
@@ -224,7 +267,7 @@ export async function createProjectFromSetup(form) {
       status: "On track",
       progress: 0,
     },
-    { preventDuplicate: true, syncLocalStorage: true }
+    { preventDuplicate: true, syncLocalStorage: true },
   );
 
   return { projectId: created.id, teamId };
@@ -283,11 +326,11 @@ export function subscribeProjectNotes(projectId, teamId, { onState } = {}) {
       }));
 
       notesArr.sort(
-        (a, b) => Number(b?.createdAt || 0) - Number(a?.createdAt || 0)
+        (a, b) => Number(b?.createdAt || 0) - Number(a?.createdAt || 0),
       );
 
       const unreadCount = notesArr.filter(
-        (n) => n?.readByTeams?.[tid] !== true
+        (n) => n?.readByTeams?.[tid] !== true,
       ).length;
 
       emit({ notes: notesArr, unreadCount });
@@ -295,7 +338,7 @@ export function subscribeProjectNotes(projectId, teamId, { onState } = {}) {
     (err) => {
       console.error("NOTES SUBSCRIBE ERROR:", err);
       emit({ error: String(err?.message || "Failed to load notes.") });
-    }
+    },
   );
 
   return unsub;

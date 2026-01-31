@@ -1,3 +1,11 @@
+/**
+ * CourseMaterials
+ *
+ * Displays weekly course documents uploaded by the mentor.
+ * Loads materials for the selected week and allows students
+ * to open or download files directly from stored data URLs.
+ */
+
 import { useEffect, useState } from "react";
 import { listWeekDocuments } from "../../services/documentService";
 
@@ -5,10 +13,7 @@ const toStr = (v) => String(v ?? "").trim();
 
 function safeFileName(d) {
   return (
-    toStr(d?.fileName) ||
-    toStr(d?.title) ||
-    toStr(d?.filename) ||
-    "document"
+    toStr(d?.fileName) || toStr(d?.title) || toStr(d?.filename) || "document"
   );
 }
 
@@ -16,7 +21,7 @@ function downloadFromDataUrl(dataUrl, filename) {
   const url = toStr(dataUrl);
   if (!url || !url.startsWith("data:")) {
     alert(
-      "No file data available. Ask the mentor to re-upload the document (dataUrl missing)."
+      "No file data available. Ask the mentor to re-upload the document (dataUrl missing).",
     );
     return;
   }
@@ -43,7 +48,6 @@ export default function CourseMaterials({ week = 1 }) {
       setErr("");
 
       try {
-        
         const data = await listWeekDocuments(week);
         if (!cancelled) setDocs(Array.isArray(data) ? data : []);
       } catch (e) {

@@ -1,4 +1,11 @@
-// src/components/team/project/ProjectProgressCard.jsx
+/**
+ * ProjectProgressCard
+ *
+ * Displays key project metadata and progress.
+ * Shows team leader, category, status, and
+ * a visual progress bar based on completion percentage.
+ */
+
 export default function ProjectProgressCard({
   status,
   progress,

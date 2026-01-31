@@ -1,3 +1,12 @@
+/**
+ * MentorNavBar
+ *
+ * Main navigation bar for mentor users.
+ * Provides access to mentor dashboard, projects, forum,
+ * dictionary, theme toggle, and logout.
+ * Includes responsive mobile navigation support.
+ */
+
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import ActionButton from "./ActionButton";

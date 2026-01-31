@@ -1,4 +1,11 @@
-// src/components/team/project/ProjectNotes.jsx
+/**
+ * ProjectNotes
+ *
+ * Displays mentor feedback and project notes for a team.
+ * Subscribes to notes in real time, tracks unread items,
+ * and automatically marks notes as read after viewing.
+ */
+
 import { useEffect, useMemo, useState } from "react";
 import {
   subscribeProjectNotes,

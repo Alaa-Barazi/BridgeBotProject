@@ -1,3 +1,10 @@
+/**
+ * EmptyProjectState
+ *
+ * Placeholder view shown when a project has no workspace yet.
+ * Encourages the user to start by creating the project architecture.
+ */
+
 import ActionButton from "../../common/ActionButton";
 
 export default function EmptyProjectState({ onCreateArchitecture }) {
@@ -7,11 +14,15 @@ export default function EmptyProjectState({ onCreateArchitecture }) {
         No project workspace yet
       </h2>
       <p className="text-gray-600 dark:text-gray-300 mb-6">
-        Start by creating your architecture. After that, you will be able to upload documents, add requirements, and track progress.
+        Start by creating your architecture. After that, you will be able to
+        upload documents, add requirements, and track progress.
       </p>
 
       <div className="flex gap-3">
-        <ActionButton text="Create Architecture" onClick={onCreateArchitecture} />
+        <ActionButton
+          text="Create Architecture"
+          onClick={onCreateArchitecture}
+        />
       </div>
     </div>
   );

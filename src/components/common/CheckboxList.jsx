@@ -14,9 +14,14 @@ function CheckboxList({ sectionId, options, selectedOptions, onOptionToggle }) {
               type="checkbox"
               checked={selectedOptions.includes(option)}
               onChange={() => onOptionToggle(option)}
-              className="h-4 w-4 accent-blue-600"
+              className="
+                h-4 w-4
+                accent-blue-600
+                bg-white dark:bg-gray-800
+                border-gray-300 dark:border-gray-600
+              "
             />
-            <span className="text-gray-800">{option}</span>
+            <span className="text-gray-800 dark:text-gray-200">{option}</span>
           </label>
         );
       })}

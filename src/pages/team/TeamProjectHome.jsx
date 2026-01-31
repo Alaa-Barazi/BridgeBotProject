@@ -1,3 +1,17 @@
+/**
+ * TeamProjectHome
+ *
+ * Entry page for a team project.
+ * Resolves the authenticated user, loads the student profile to determine teamId,
+ * checks whether a project already exists for the team, and routes accordingly.
+ *
+ * Behavior:
+ * - Redirects unauthenticated users to login
+ * - Loads teamId from the user profile (RTDB)
+ * - Finds an existing project by ownerTeamId
+ * - Shows setup flow if no project exists, otherwise loads the project workspace
+ */
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";

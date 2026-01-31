@@ -1,3 +1,11 @@
+/**
+ * Home
+ *
+ * Course landing page.
+ * Allows students to select a week, view course materials,
+ * and access weekly activities such as quizzes and the dictionary.
+ */
+
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CourseMaterials from "../components/team/CourseMaterials";

@@ -1,4 +1,20 @@
-// src/services/mentorService.js
+/**
+ * mentorService
+ *
+ * RTDB service layer for mentor-specific data access and actions.
+ *
+ * Responsibilities:
+ * - Fetch teams, users, and projects for mentor views
+ * - Subscribe to mentor-visible projects in real time
+ * - Retrieve project details and documents
+ * - Create mentor notes attached to projects
+ *
+ * Notes:
+ * - Requires authenticated user
+ * - Assumes mentor-level access is handled by routing and rules
+ * - Uses Firebase Realtime Database listeners for live updates
+ */
+
 import { rtdb, auth } from "../firebase";
 import { ref, get, onValue, push, set } from "firebase/database";
 
@@ -102,7 +118,7 @@ export function subscribeMentorProjects({ onState } = {}) {
           error: String(err?.message || "Failed to load projects."),
           projects: [],
         });
-      }
+      },
     );
 
     emit({ loading: false });

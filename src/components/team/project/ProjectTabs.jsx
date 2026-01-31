@@ -1,4 +1,11 @@
-// src/components/team/project/ProjectTabs.jsx
+/**
+ * ProjectTabs
+ *
+ * Tab navigation component for the project workspace.
+ * Renders section tabs and optional unread badges,
+ * and notifies the parent when the active tab changes.
+ */
+
 export default function ProjectTabs({ active, onChange, badges = {} }) {
   const tabs = [
     { key: "documents", label: "Documents" },

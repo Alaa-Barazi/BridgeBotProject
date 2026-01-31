@@ -1,3 +1,11 @@
+/**
+ * AICommandPanel
+ *
+ * Reusable input panel for sending natural language instructions to AI.
+ * Used to edit quiz questions, dictionary entries, and similar content.
+ */
+``;
+
 import { useState } from "react";
 
 export default function AICommandPanel({

@@ -1,3 +1,10 @@
+/**
+ * FeedbackList
+ *
+ * Renders a list of feedback items.
+ * Shows an empty state message when no feedback exists.
+ */
+
 import FeedbackItem from "./FeedbackItem";
 
 const FeedbackList = ({ feedback }) => {

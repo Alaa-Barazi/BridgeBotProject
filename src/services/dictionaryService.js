@@ -1,9 +1,34 @@
-// src/services/dictionaryService.js (RTDB)
+/**
+ * dictionaryService (RTDB)
+ *
+ * Manages weekly dictionary generation and editing.
+ * Integrates AI-powered term extraction and definition refinement
+ * using Gemini, and persists results in Firebase Realtime Database.
+ *
+ * Responsibilities:
+ * - Generate dictionary entries from weekly course documents
+ * - Store and retrieve dictionary entries per week
+ * - Apply AI-assisted edits to definitions
+ * - Enforce authentication and consistent week-based paths
+ *
+ * Data structure:
+ * /weeks/week_{n}/dictionary/{entryId}
+ */
 
 import { rtdb, auth } from "../firebase";
-import { ref, get, set, push, update, serverTimestamp } from "firebase/database";
+import {
+  ref,
+  get,
+  set,
+  push,
+  update,
+  serverTimestamp,
+} from "firebase/database";
 
-import { generateDictionaryWithGemini, editTextWithGemini } from "./geminiService";
+import {
+  generateDictionaryWithGemini,
+  editTextWithGemini,
+} from "./geminiService";
 import { getWeekSourceText } from "./documentService";
 
 /* =========================
@@ -23,7 +48,7 @@ function requireAuth() {
   return u;
 }
 
-// ✅ keep weekId consistent everywhere: week_1, week_2 ...
+//  keep weekId consistent everywhere: week_1, week_2 ...
 function weekIdFromNumber(week) {
   const w = Number(week);
   if (!Number.isFinite(w) || w <= 0) throw new Error("Invalid week value.");
@@ -67,9 +92,9 @@ export async function generateWeekDictionary(week) {
       definition,
       category,
       level,
-      createdAt: serverTimestamp(),   // ✅ RTDB server time
+      createdAt: serverTimestamp(), // ✅ RTDB server time
       updatedAt: serverTimestamp(),
-      createdBy: user.uid
+      createdBy: user.uid,
     });
   }
 
@@ -86,7 +111,7 @@ export async function listWeekDictionary(week) {
   const obj = snapshot.val() || {};
   return Object.entries(obj).map(([id, data]) => ({
     id,
-    ...(data || {})
+    ...(data || {}),
   }));
 }
 
@@ -115,13 +140,13 @@ export async function applyDefinitionEdit(entryId, instruction, week) {
   const updated = await editTextWithGemini({
     originalText,
     instruction: instructionText,
-    mode: "dictionary"
+    mode: "dictionary",
   });
 
   await update(entryRef, {
     definition: toStr(updated),
     updatedAt: serverTimestamp(),
-    updatedBy: user.uid
+    updatedBy: user.uid,
   });
 
   return updated;

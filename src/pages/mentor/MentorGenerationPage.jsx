@@ -1,3 +1,11 @@
+/**
+ * MentorGenerationPage
+ *
+ * Mentor-facing page for generating weekly learning content.
+ * Allows selecting a week and managing documents, quizzes,
+ * and dictionary entries per week.
+ */
+
 import { useEffect, useState } from "react";
 import WeekSelector from "../../components/mentor/WeekSelector";
 import DocumentUploader from "../../components/mentor/DocumentUploader";

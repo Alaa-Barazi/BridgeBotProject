@@ -1,3 +1,12 @@
+/**
+ * StudentNavBar
+ *
+ * Main navigation bar for students.
+ * Provides links to course pages, project tools,
+ * theme toggle, profile access, and logout.
+ * Includes responsive mobile menu behavior.
+ */
+
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import ActionButton from "./ActionButton";

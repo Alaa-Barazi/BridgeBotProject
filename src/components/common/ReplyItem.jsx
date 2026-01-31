@@ -1,3 +1,10 @@
+/**
+ * ReplyItem
+ *
+ * Displays a single reply in the forum.
+ * Shows the reply text along with author name and timestamp.
+ */
+
 const ReplyItem = ({ text, user, timestamp }) => {
   return (
     <div

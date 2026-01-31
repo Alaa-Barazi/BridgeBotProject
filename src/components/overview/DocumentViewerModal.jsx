@@ -1,4 +1,11 @@
-import React from "react";
+/**
+ * DocumentViewerModal
+ *
+ * Modal dialog for viewing document content.
+ * Displays the document title and text content
+ * in a scrollable, read-only layout.
+ */
+
 import { IoClose } from "react-icons/io5";
 
 const DocumentViewerModal = ({ isOpen, onClose, title, content }) => {

@@ -1,3 +1,12 @@
+/**
+ * TeamProjectSetup
+ *
+ * Initial project creation page for a team.
+ * Collects basic project details, validates required fields,
+ * creates the project in the backend, and routes the team
+ * to the architecture configuration step.
+ */
+
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 

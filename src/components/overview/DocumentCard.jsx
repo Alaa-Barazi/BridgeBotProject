@@ -1,3 +1,11 @@
+/**
+ * DocumentCard
+ *
+ * Clickable card for displaying a document preview.
+ * Shows document title and last update time,
+ * and triggers an open action when selected.
+ */
+
 import { LuFileText } from "react-icons/lu";
 import ActionButton from "../common/ActionButton";
 const DocumentCard = ({ title, lastUpdated, onOpen }) => {

@@ -1,3 +1,18 @@
+/**
+ * geminiService
+ *
+ * Wrapper around Google Gemini API for content generation and editing.
+ *
+ * Responsibilities:
+ * - Edit existing quiz questions or dictionary definitions
+ * - Generate weekly quiz questions from course documents
+ * - Generate weekly technical dictionary entries from course documents
+ *
+ * Notes:
+ * - Uses Gemini 2.5 Flash
+ * - All outputs are expected to be machine-readable (plain text or JSON only)
+ * - Prompt rules strictly enforce no markdown and no explanations
+ */
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;

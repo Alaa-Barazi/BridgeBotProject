@@ -1,3 +1,10 @@
+/**
+ * Modal
+ *
+ * Generic modal dialog wrapper.
+ * Displays a title, arbitrary content, and a close button.
+ * Used for confirmations, forms, and focused interactions.
+ */
 const Modal = ({ title, children, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">

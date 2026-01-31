@@ -1,3 +1,7 @@
+/*
+ *MentorHomePage
+ *Home page for the mentor where he see as first page the place for
+ *uploading the documents and quiz+dictionary for each week */
 import WeekMaterialsManager from "../../components/mentor/WeekMaterialsManager";
 
 export default function MentorHomePage() {
@@ -13,4 +17,3 @@ export default function MentorHomePage() {
     </div>
   );
 }
-

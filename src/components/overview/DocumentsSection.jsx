@@ -1,3 +1,11 @@
+/**
+ * DocumentsSection
+ *
+ * Displays a grid of submitted documents.
+ * Allows users to preview documents in a modal
+ * and download files from stored URLs or data URLs.
+ */
+
 import React, { useMemo, useState } from "react";
 import DocumentViewerModal from "./DocumentViewerModal";
 
@@ -12,7 +20,7 @@ const DocumentsSection = ({ documents = [] }) => {
 
   const docs = useMemo(
     () => (Array.isArray(documents) ? documents : []),
-    [documents]
+    [documents],
   );
 
   const getTitle = (d) => d?.title || d?.fileName || d?.name || "Document";
@@ -33,7 +41,9 @@ const DocumentsSection = ({ documents = [] }) => {
 
   return (
     <div className="mt-10">
-      <h2 className="text-2xl font-semibold text-center mb-6">Documents</h2>
+      <h2 className="text-2xl font-semibold text-center mb-6 dark:text-gray-300">
+        Documents
+      </h2>
 
       {docs.length === 0 ? (
         <div className="text-center text-sm text-gray-500">

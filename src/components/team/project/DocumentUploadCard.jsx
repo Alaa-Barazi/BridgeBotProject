@@ -1,4 +1,11 @@
-// src/components/team/project/DocumentUploadCard.jsx
+/**
+ * DocumentUploadCard
+ *
+ * Reusable upload panel for project documents.
+ * Supports file selection, drag-and-drop upload,
+ * optimistic deletion, and opening existing files.
+ */
+
 import { useCallback, useEffect, useRef, useState } from "react";
 
 function TrashIcon({ className = "w-4 h-4" }) {
@@ -54,7 +61,7 @@ export default function DocumentUploadCard({
 
   // ✅ keep local list so UI updates immediately after delete
   const [localFiles, setLocalFiles] = useState(
-    Array.isArray(files) ? files : []
+    Array.isArray(files) ? files : [],
   );
   const [deletingId, setDeletingId] = useState(null);
 
@@ -88,7 +95,7 @@ export default function DocumentUploadCard({
 
       if (inputRef.current) inputRef.current.value = "";
     },
-    [uploading]
+    [uploading],
   );
 
   const handleDragOver = useCallback(
@@ -97,7 +104,7 @@ export default function DocumentUploadCard({
       e.stopPropagation();
       if (!uploading) setDragOver(true);
     },
-    [uploading]
+    [uploading],
   );
 
   const handleDragLeave = useCallback((e) => {

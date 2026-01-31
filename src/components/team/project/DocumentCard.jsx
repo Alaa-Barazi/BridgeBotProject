@@ -1,4 +1,11 @@
-// src/components/team/project/DocumentCard.jsx
+/**
+ * DocumentCard
+ *
+ * Displays a single document summary.
+ * Shows the document title, last update time,
+ * and an action button to open the document.
+ */
+
 export default function DocumentCard({ title, updatedAt, onOpen, disabled }) {
   return (
     <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm hover:shadow transition">

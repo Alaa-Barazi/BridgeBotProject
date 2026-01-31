@@ -1,3 +1,10 @@
+/**
+ * ActionsPanel
+ *
+ * Quick-access panel for project-related tools.
+ * Provides navigation shortcuts to quizzes,
+ * forum discussions, and the AI chatbot.
+ */
 import { useNavigate } from "react-router-dom";
 
 const ActionsPanel = () => {

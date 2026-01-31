@@ -1,3 +1,10 @@
+/**
+ * ReplyBox
+ *
+ * Input component for writing and submitting a forum reply.
+ * Manages local text state and triggers onSave when submitted.
+ */
+
 import { useState } from "react";
 import ActionButton from "./ActionButton";
 

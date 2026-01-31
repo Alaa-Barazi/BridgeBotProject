@@ -1,3 +1,11 @@
+/**
+ * WeekMaterialsManager
+ *
+ * Mentor-facing manager for weekly course materials.
+ * Allows uploading, updating, renaming, and deleting files,
+ * and synchronizes metadata between Firestore and Storage.
+ */
+
 import { useEffect, useState } from "react";
 import {
   createMaterialDoc,

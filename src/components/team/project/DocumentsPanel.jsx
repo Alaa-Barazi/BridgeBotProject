@@ -1,4 +1,11 @@
-// src/components/team/project/DocumentsPanel.jsx
+/**
+ * DocumentsPanel
+ *
+ * Container for managing project documents.
+ * Wraps the upload card, normalizes document data,
+ * and handles opening and deleting files.
+ */
+
 import { useMemo } from "react";
 import DocumentUploadCard from "./DocumentUploadCard";
 
@@ -43,7 +50,7 @@ export default function DocumentsPanel({
 }) {
   const docs = useMemo(
     () => (Array.isArray(documents) ? documents : []),
-    [documents]
+    [documents],
   );
 
   // ✅ normalize docs to what UploadCard expects

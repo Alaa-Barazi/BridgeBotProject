@@ -1,4 +1,11 @@
-// src/pages/auth/ForgotPassword.jsx
+/**
+ * ForgotPassword
+ *
+ * Authentication page for requesting a password reset.
+ * Validates the email domain, sends a reset link,
+ * and handles common Firebase auth error states.
+ */
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 

@@ -1,3 +1,10 @@
+/**
+ * FeedbackItem
+ *
+ * Displays a single feedback entry with author, timestamp,
+ * and message content.
+ */
+
 const FeedbackItem = ({ user, message, timestamp }) => {
   return (
     <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-300 dark:border-gray-700">

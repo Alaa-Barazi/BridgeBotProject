@@ -1,3 +1,28 @@
+/**
+ * bridgeBotQAService
+ *
+ * Handles persistence, aggregation, and export of BridgeBot Q&A interactions.
+ *
+ * Responsibilities:
+ * - Save student questions and AI answers to RTDB
+ * - Fetch raw Q&A records
+ * - Enrich Q&A with readable student and project names
+ * - Export conversations to Excel for mentor review and analysis
+ *
+ * Data model (RTDB):
+ * /bridgebot_qa/{qaId}
+ *   - studentId
+ *   - projectId
+ *   - question
+ *   - answer
+ *   - timestamp
+ *
+ * Notes:
+ * - User names are resolved via authService (users map)
+ * - Project names are resolved via projectsService (projects map)
+ * - Excel export is intended for mentor dashboards and reports
+ */
+
 import { ref, push, get, child, serverTimestamp } from "firebase/database";
 import { rtdb } from "../firebase";
 import { fetchUsersMap } from "./authService";

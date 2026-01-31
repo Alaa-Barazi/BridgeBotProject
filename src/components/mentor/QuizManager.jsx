@@ -1,3 +1,11 @@
+/**
+ * QuizManager
+ *
+ * Mentor-facing component for managing weekly quizzes.
+ * Loads quiz questions, triggers AI-based quiz generation,
+ * and allows editing individual questions using AI commands.
+ */
+
 import { useEffect, useState } from "react";
 import {
   generateWeekQuiz,

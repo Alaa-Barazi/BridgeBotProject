@@ -1,4 +1,19 @@
-// src/services/validators.js
+/**
+ * validators
+ *
+ * Centralized validation utilities for authentication and registration flows.
+ * Ensures consistent input validation across the application.
+ *
+ * Responsibilities:
+ * - Normalize and validate academic email addresses
+ * - Enforce basic password strength and confirmation rules
+ * - Validate team number format
+ *
+ * Notes:
+ * - These validators throw errors directly and are meant to be used
+ *   inside service-level logic (not UI components)
+ * - Domain restriction is enforced via ALLOWED_DOMAIN
+ */
 
 export const ALLOWED_DOMAIN = "@e.braude.ac.il";
 
@@ -6,7 +21,9 @@ export const ALLOWED_DOMAIN = "@e.braude.ac.il";
    Email helpers
    ========================= */
 export function normalizeEmail(email) {
-  return String(email || "").trim().toLowerCase();
+  return String(email || "")
+    .trim()
+    .toLowerCase();
 }
 
 export function assertAllowedDomain(email) {

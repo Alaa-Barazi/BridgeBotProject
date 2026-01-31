@@ -1,4 +1,11 @@
-// src/pages/auth/Login.jsx
+/**
+ * Login
+ *
+ * Authentication page for signing in users.
+ * Validates credentials, enforces allowed email domain,
+ * and routes users based on their role (mentor or student).
+ */
+
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 

@@ -1,3 +1,12 @@
+/**
+ * TeamProjectPage
+ *
+ * Main overview page for a team project.
+ * Subscribes to real-time project updates, handles loading and error states,
+ * and renders project summary, progress, and navigation to key project areas
+ * such as workspace, architecture, documents, quizzes, and the AI assistant.
+ */
+
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 

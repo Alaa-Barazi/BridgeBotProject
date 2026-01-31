@@ -1,4 +1,27 @@
-// src/services/quizService.js (RTDB VERSION)
+/**
+ * quizService (RTDB)
+ *
+ * Manages weekly quizzes generated from uploaded course documents.
+ * Uses Gemini AI to generate and edit quiz questions, and stores them in RTDB.
+ *
+ * Responsibilities:
+ * - Generate a quiz for a given week based on extracted document text
+ * - Persist quiz questions under the weekly structure in RTDB
+ * - Fetch existing quiz questions for display
+ * - Apply AI-driven edits to individual questions
+ *
+ * Data model (RTDB):
+ * /weeks/week_{n}/quiz/{questionId}
+ *   - question: string
+ *   - difficulty: string
+ *   - createdAt: serverTimestamp
+ *   - updatedAt: serverTimestamp
+ *
+ * Notes:
+ * - Requires authenticated user
+ * - Quiz generation depends on documents uploaded for the same week
+ * - Gemini responses are treated as source of truth for question text
+ */
 
 import { rtdb, auth } from "../firebase";
 import {
